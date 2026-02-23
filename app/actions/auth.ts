@@ -6,9 +6,9 @@ import { redirect } from "next/navigation"
 import bcrypt from "bcryptjs"
 
 export async function loginAction(
-  _prevState: { error: string } | null,
+  _prevState: { error?: string; success?: boolean } | null,
   formData: FormData
-): Promise<{ error: string } | null> {
+): Promise<{ error?: string; success?: boolean }> {
   const email = formData.get("email") as string
   const password = formData.get("password") as string
 
@@ -36,7 +36,7 @@ export async function loginAction(
   }
 
   await createSession(employee.id)
-  redirect("/org-chart")
+  return { success: true }
 }
 
 export async function logoutAction(): Promise<void> {

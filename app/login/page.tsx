@@ -1,6 +1,7 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { loginAction } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,6 +11,13 @@ import { AlertCircle, Building2 } from "lucide-react"
 
 export default function LoginPage() {
   const [state, formAction, isPending] = useActionState(loginAction, null)
+  const router = useRouter()
+
+  useEffect(() => {
+    if (state?.success) {
+      router.push("/org-chart")
+    }
+  }, [state, router])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
