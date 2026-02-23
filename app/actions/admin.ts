@@ -1,12 +1,17 @@
 "use server"
 
 import { sql } from "@/lib/db"
-import { requireAdmin } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import bcrypt from "bcryptjs"
 
+// AUTH DISABLED - get first admin for audit logging
+async function getDefaultAdmin() {
+  const rows = await sql`SELECT id FROM employees WHERE is_admin = true LIMIT 1`
+  return rows[0] || { id: "system" }
+}
+
 export async function createEmployee(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await getDefaultAdmin()
 
   const firstName = formData.get("first_name") as string
   const lastName = formData.get("last_name") as string
@@ -53,7 +58,7 @@ export async function createEmployee(formData: FormData) {
 }
 
 export async function updateEmployee(employeeId: string, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await getDefaultAdmin()
 
   const firstName = formData.get("first_name") as string
   const lastName = formData.get("last_name") as string
@@ -106,7 +111,7 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
 }
 
 export async function deleteEmployee(employeeId: string) {
-  const admin = await requireAdmin()
+  const admin = await getDefaultAdmin()
 
   // Get employee info before delete
   const rows = await sql`SELECT first_name, last_name, email FROM employees WHERE id = ${employeeId}`

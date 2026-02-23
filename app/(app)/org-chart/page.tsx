@@ -1,4 +1,3 @@
-import { requireSession } from "@/lib/auth"
 import { getOrgTree, getDepartmentHeadcounts } from "@/lib/queries"
 import { OrgTree } from "@/components/org-chart/org-tree"
 import { Badge } from "@/components/ui/badge"
@@ -6,8 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { GitBranch, Users } from "lucide-react"
 
 export default async function OrgChartPage() {
-  const [user, tree, headcounts] = await Promise.all([
-    requireSession(),
+  const [tree, headcounts] = await Promise.all([
     getOrgTree(),
     getDepartmentHeadcounts(),
   ])

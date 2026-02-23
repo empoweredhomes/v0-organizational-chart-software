@@ -1,4 +1,3 @@
-import { requireSession } from "@/lib/auth"
 import { getEmployeeById, getDirectReports } from "@/lib/queries"
 import { notFound } from "next/navigation"
 import { ProfileHeader } from "@/components/profile/profile-header"
@@ -11,10 +10,7 @@ interface ProfilePageProps {
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { id } = await params
-  const [user, employee] = await Promise.all([
-    requireSession(),
-    getEmployeeById(id),
-  ])
+  const employee = await getEmployeeById(id)
 
   if (!employee) notFound()
 

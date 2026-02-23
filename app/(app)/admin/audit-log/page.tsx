@@ -1,4 +1,3 @@
-import { requireAdmin } from "@/lib/auth"
 import { getAuditLog } from "@/lib/queries"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -32,10 +31,7 @@ function ActionBadge({ action }: { action: string }) {
 }
 
 export default async function AdminAuditLogPage() {
-  const [admin, logs] = await Promise.all([
-    requireAdmin(),
-    getAuditLog(100),
-  ])
+  const logs = await getAuditLog(100)
 
   return (
     <div className="flex flex-col gap-6 p-6">

@@ -1,12 +1,10 @@
-import { requireAdmin } from "@/lib/auth"
 import { getAllDepartments, getDepartmentHeadcounts } from "@/lib/queries"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Building2, Users } from "lucide-react"
 
 export default async function AdminDepartmentsPage() {
-  const [admin, departments, headcounts] = await Promise.all([
-    requireAdmin(),
+  const [departments, headcounts] = await Promise.all([
     getAllDepartments(),
     getDepartmentHeadcounts(),
   ])

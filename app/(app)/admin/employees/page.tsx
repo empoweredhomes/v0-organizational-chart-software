@@ -1,11 +1,9 @@
-import { requireAdmin } from "@/lib/auth"
 import { getAllEmployeesWithDepartment, getAllDepartments } from "@/lib/queries"
 import { AdminEmployeeTable } from "@/components/admin/employee-table"
 import { Shield, UserPlus } from "lucide-react"
 
 export default async function AdminEmployeesPage() {
-  const [admin, employees, departments] = await Promise.all([
-    requireAdmin(),
+  const [employees, departments] = await Promise.all([
     getAllEmployeesWithDepartment(),
     getAllDepartments(),
   ])

@@ -1,11 +1,9 @@
-import { requireSession } from "@/lib/auth"
 import { getAllEmployeesWithDepartment, getAllDepartments } from "@/lib/queries"
 import { DirectoryView } from "@/components/directory/directory-view"
 import { Users } from "lucide-react"
 
 export default async function DirectoryPage() {
-  const [user, employees, departments] = await Promise.all([
-    requireSession(),
+  const [employees, departments] = await Promise.all([
     getAllEmployeesWithDepartment(),
     getAllDepartments(),
   ])
