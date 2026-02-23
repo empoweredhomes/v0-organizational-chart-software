@@ -11,8 +11,6 @@ import {
   LayoutGrid,
   Layers,
   GitBranch,
-  Shield,
-  BarChart3,
   Calendar,
   CheckCircle2,
 } from "lucide-react"
@@ -24,8 +22,6 @@ const sections = [
   { id: "org-structure", label: "Mysa Org Structure", icon: GitBranch },
   { id: "features", label: "Core Features", icon: LayoutGrid },
   { id: "feature-details", label: "Feature Details", icon: Layers },
-  { id: "integrations", label: "Integrations", icon: Shield },
-  { id: "metrics", label: "Success Metrics", icon: BarChart3 },
   { id: "phases", label: "Phased Rollout", icon: Calendar },
   { id: "risks", label: "Risks & Mitigations", icon: CheckCircle2 },
 ]

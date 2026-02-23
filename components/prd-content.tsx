@@ -6,16 +6,10 @@ import { Separator } from "@/components/ui/separator"
 import {
   Users,
   Eye,
-  Zap,
   Search,
   UserPlus,
-  Award,
-  BarChart3,
-  MessageSquare,
   Shield,
   Smartphone,
-  Globe,
-  Clock,
   CheckCircle2,
   AlertTriangle,
   ArrowRight,
@@ -253,8 +247,8 @@ export function PRDContent() {
                 desc: "Every team member can instantly see the full company structure, reporting lines, and department breakdowns.",
               },
               {
-                title: "Self-Service Employee Directory",
-                desc: "Searchable, filterable directory with rich profiles including skills, interests, and contact info.",
+                title: "Employee Directory",
+                desc: "Searchable, filterable directory with rich profiles including interests and contact info, managed by the P&C admin team.",
               },
               {
                 title: "Streamlined Onboarding",
@@ -262,7 +256,7 @@ export function PRDContent() {
               },
               {
                 title: "Always Up-to-Date",
-                desc: "Changes to roles, departments, and reporting lines are reflected automatically without manual effort.",
+                desc: "Changes to roles, departments, and reporting lines are managed by the P&C team and reflected in real time across the platform.",
               },
             ].map((obj, i) => (
               <Card key={i} className="border border-border bg-card">
@@ -291,15 +285,15 @@ export function PRDContent() {
             {[
               {
                 persona: "All Employees (75 people)",
-                needs: "View the org chart, search for colleagues, update their own profile, find contact info and expertise across departments.",
+                needs: "View the org chart (read-only), search for colleagues, find contact info and expertise across departments. Employees cannot edit their own profiles.",
               },
               {
                 persona: "People & Culture Team (Admins)",
-                needs: "Manage the org structure, add/remove employees, update reporting lines, oversee profiles, track open roles, and generate reports.",
+                needs: "Manage the org structure, add/remove employees, update reporting lines, create and edit all employee profiles, and generate reports.",
               },
               {
                 persona: "Department Leads & Managers",
-                needs: "View their team hierarchy, plan org changes in draft mode, identify cross-functional team structures, support hiring decisions.",
+                needs: "View their team hierarchy, understand headcount and reporting structures, and support organizational planning.",
               },
               {
                 persona: "New Hires",
@@ -307,7 +301,7 @@ export function PRDContent() {
               },
               {
                 persona: "Executive Leadership (CEO, COO, CRO)",
-                needs: "High-level organizational overview, headcount analytics, department breakdowns, and planning views for reorgs or growth.",
+                needs: "High-level organizational overview, headcount analytics, and department breakdowns.",
               },
             ].map((user, i) => (
               <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-secondary/50 border border-border">
@@ -482,19 +476,19 @@ export function PRDContent() {
             <FeatureCard
               icon={Search}
               title="Employee Directory & Search"
-              description="Searchable, filterable directory with rich employee profiles, contact info, and skills."
+              description="Searchable, filterable directory with rich employee profiles and contact info."
               priority="P0"
             />
             <FeatureCard
               icon={Users}
               title="Rich Employee Profiles"
-              description="Detailed profiles with photo, title, department, skills, interests, contact info, and name pronunciation."
+              description="Detailed profiles with photo, title, department, interests, contact info, and name pronunciation. Managed exclusively by P&C admins."
               priority="P0"
             />
             <FeatureCard
               icon={Shield}
               title="Admin Management Panel"
-              description="Admin interface for P&C team to manage employees, update structure, and control permissions."
+              description="Admin interface for P&C team to manage employees, update profiles, edit structure, and control permissions."
               priority="P0"
             />
             <FeatureCard
@@ -504,46 +498,10 @@ export function PRDContent() {
               priority="P1"
             />
             <FeatureCard
-              icon={Zap}
-              title="Open Roles & Hiring"
-              description="Display open positions on the org chart so employees can see where the company is growing."
-              priority="P1"
-            />
-            <FeatureCard
-              icon={Award}
-              title="Peer Recognition"
-              description="Applause feature for peer-to-peer shout-outs, connected to company values."
-              priority="P1"
-            />
-            <FeatureCard
-              icon={BarChart3}
-              title="Planning & Draft Mode"
-              description="Private draft org charts for planning reorgs, growth, and role changes before publishing."
-              priority="P1"
-            />
-            <FeatureCard
-              icon={MessageSquare}
-              title="Slack & Teams Integration"
-              description="One-click messaging, status sync, and notification delivery through existing tools."
-              priority="P1"
-            />
-            <FeatureCard
-              icon={Globe}
-              title="Matrix / Cross-Functional View"
-              description="Visualize cross-functional team memberships beyond the standard hierarchy."
-              priority="P2"
-            />
-            <FeatureCard
               icon={Smartphone}
               title="Mobile-Responsive Design"
               description="Fully functional on mobile devices for on-the-go access to org chart and directory."
               priority="P0"
-            />
-            <FeatureCard
-              icon={Clock}
-              title="Status & Calendar"
-              description="OOO indicators, birthday/anniversary celebrations, and weekly digest emails."
-              priority="P2"
             />
           </div>
         </section>
@@ -584,10 +542,6 @@ export function PRDContent() {
                   title: "Headcount Badges",
                   desc: "Show team size badges on manager nodes (e.g., 'App Team - 5 reports') so viewers can quickly gauge team sizes.",
                 },
-                {
-                  title: "Open Roles Indicator",
-                  desc: "Show placeholder nodes for approved open positions with a 'Hiring' badge and link to the job description.",
-                },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3 p-3 rounded-md bg-secondary/40 border border-border">
                   <CheckCircle2 className="w-4 h-4 text-accent shrink-0 mt-0.5" />
@@ -610,7 +564,7 @@ export function PRDContent() {
               {[
                 {
                   title: "Global Search",
-                  desc: "Real-time search across names, titles, departments, skills, and interests. Results update as the user types.",
+                  desc: "Real-time search across names, titles, departments, and interests. Results update as the user types.",
                 },
                 {
                   title: "Filter & Sort",
@@ -618,11 +572,7 @@ export function PRDContent() {
                 },
                 {
                   title: "Employee Profile Card",
-                  desc: "Each profile includes: photo, full name, name pronunciation, job title, department, manager, direct reports, contact info, skills, interests, start date, and a custom bio.",
-                },
-                {
-                  title: "Self-Service Profile Editing",
-                  desc: "Employees can edit their own profile fields (photo, bio, interests, skills, contact info). Core HR fields (title, department, manager) are admin-controlled.",
+                  desc: "Each profile includes: photo, full name, name pronunciation, job title, department, manager, direct reports, contact info, interests, start date, and a custom bio. All fields are managed by P&C admins.",
                 },
                 {
                   title: "Tile & List Views",
@@ -658,15 +608,11 @@ export function PRDContent() {
                 },
                 {
                   title: "Role-Based Access Control",
-                  desc: "Three roles: Admin (P&C team, full control), Manager (edit own team details), Employee (view-only + self-profile edits).",
+                  desc: "Two primary roles: Admin (P&C team, full control over all profiles and org structure) and Employee (view-only access to the entire org chart and directory).",
                 },
                 {
                   title: "Audit Log",
                   desc: "Track all changes to the org structure with timestamps and who made each change.",
-                },
-                {
-                  title: "Open Role Management",
-                  desc: "Create, edit, and close open positions. Assign them to specific departments and managers.",
                 },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3 p-3 rounded-md bg-secondary/40 border border-border">
@@ -678,118 +624,6 @@ export function PRDContent() {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* Integrations */}
-        <section className="mb-12">
-          <SectionHeading
-            id="integrations"
-            title="Integrations"
-            subtitle="External systems and data sources"
-          />
-          <div className="space-y-3">
-            {[
-              {
-                name: "Slack",
-                desc: "One-click messaging from profiles. Push notifications for org changes, new hires, and peer recognition. Status sync (OOO, busy).",
-                priority: "P1",
-              },
-              {
-                name: "Google Workspace",
-                desc: "SSO authentication, Google Calendar integration for OOO/availability, profile photo sync from Google accounts.",
-                priority: "P0",
-              },
-              {
-                name: "HRIS / BambooHR",
-                desc: "Two-way sync for employee data (name, title, department, start date, manager). BambooHR is the current HRIS candidate - to be confirmed.",
-                priority: "P1",
-              },
-              {
-                name: "Microsoft Teams",
-                desc: "One-click video calls and messaging from profiles. Alternative to Slack integration based on team preference.",
-                priority: "P2",
-              },
-              {
-                name: "CSV Import/Export",
-                desc: "Bulk import for initial 75-employee data load. Export capability for reporting and backup purposes.",
-                priority: "P0",
-              },
-            ].map((integration, i) => (
-              <Card key={i} className="border border-border bg-card">
-                <CardContent className="p-4 flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Globe className="w-5 h-5 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-semibold text-card-foreground font-sans">
-                        {integration.name}
-                      </h4>
-                      <Badge variant="outline" className="text-xs">
-                        {integration.priority}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed font-sans">
-                      {integration.desc}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Success Metrics */}
-        <section className="mb-12">
-          <SectionHeading
-            id="metrics"
-            title="Success Metrics"
-            subtitle="Key performance indicators to measure product effectiveness"
-          />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {[
-              {
-                metric: "Adoption Rate",
-                target: "> 90% of employees",
-                desc: "Percentage of Mysa employees with active profiles within 30 days of launch.",
-              },
-              {
-                metric: "Weekly Active Users",
-                target: "> 60% of team",
-                desc: "Employees who access the org chart or directory at least once per week.",
-              },
-              {
-                metric: "Profile Completeness",
-                target: "> 80% complete",
-                desc: "Average profile completeness across all employees (photo, bio, skills, interests).",
-              },
-              {
-                metric: "Search-to-Find Time",
-                target: "< 10 seconds",
-                desc: "Average time for an employee to find a colleague using search or org chart navigation.",
-              },
-              {
-                metric: "Onboarding NPS",
-                target: "> 8/10",
-                desc: "New hire satisfaction score for using OrgChart as part of the onboarding experience.",
-              },
-              {
-                metric: "Data Accuracy",
-                target: "> 98%",
-                desc: "Percentage of employee records with correct reporting lines, titles, and department assignments.",
-              },
-            ].map((kpi, i) => (
-              <Card key={i} className="border border-border bg-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-sm font-semibold text-card-foreground font-sans">{kpi.metric}</h4>
-                    <Badge className="bg-accent/10 text-accent border-0 text-xs">{kpi.target}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed font-sans">{kpi.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
           </div>
         </section>
 
@@ -806,11 +640,11 @@ export function PRDContent() {
               title="Foundation - MVP"
               duration="Weeks 1-6"
               items={[
-                "Static org chart rendering from CSV data import of all 75 Mysa employees",
+                "Static org chart rendering with all 75 Mysa employees loaded by P&C admins",
                 "Basic employee directory with search and filter by department",
                 "Employee profile pages with core fields (name, title, department, photo, contact)",
-                "Google Workspace SSO authentication",
-                "Admin panel for P&C team to manage employees and org structure",
+                "Admin panel for P&C team to manage employees, profiles, and org structure",
+                "Role-based access: Admin (P&C) full control, all other employees view-only",
                 "Mobile-responsive layout",
               ]}
             />
@@ -820,37 +654,23 @@ export function PRDContent() {
               duration="Weeks 7-12"
               items={[
                 "Interactive zoom/pan on the org chart with collapsible departments",
-                "Self-service profile editing (bio, skills, interests, photo)",
+                "Rich employee profiles with interests, bio, name pronunciation, and contact info",
                 "Employee search across all profile fields",
-                "Open roles / hiring indicators on the org chart",
                 "Tile and list view toggle in the directory",
                 "Department color-coding and headcount badges",
+                "Admin bulk import / CSV upload for initial data load",
               ]}
             />
             <PhaseCard
               phase="Phase 3"
-              title="Collaboration & Engagement"
+              title="Onboarding & Administration"
               duration="Weeks 13-18"
               items={[
-                "Slack integration (one-click messaging, notifications, status sync)",
-                "Peer recognition / Applause feature",
                 "New hire onboarding experience and guided tour",
-                "Planning / draft mode for org chart changes",
-                "Weekly digest email with new hires, changes, and recognitions",
-                "OOO / availability status indicators",
-              ]}
-            />
-            <PhaseCard
-              phase="Phase 4"
-              title="Scale & Advanced Features"
-              duration="Weeks 19-24"
-              items={[
-                "HRIS integration (BambooHR or equivalent) for auto-sync",
-                "Matrix / cross-functional team view",
-                "Analytics dashboard (headcount trends, department growth, profile engagement)",
-                "Audit log for all org structure changes",
-                "Embeddable org chart for internal wiki or intranet",
-                "Advanced reporting and export capabilities",
+                "Audit log for all org structure and profile changes",
+                "Drag-and-drop org structure management for admins",
+                "Enhanced admin reporting and export capabilities",
+                "Performance optimizations for chart rendering at scale",
               ]}
             />
           </div>
@@ -868,12 +688,12 @@ export function PRDContent() {
               <RiskRow
                 risk="Low adoption if employees don't see immediate value"
                 impact="High"
-                mitigation="Integrate into onboarding from day one. Ensure P&C team champions the tool. Make profiles engaging with personal details (interests, skills) beyond just titles."
+                mitigation="Integrate into onboarding from day one. Ensure P&C team champions the tool. Make profiles engaging with personal details (interests, bio) beyond just titles."
               />
               <RiskRow
-                risk="Data accuracy degrades over time without HRIS sync"
+                risk="Data accuracy degrades over time without dedicated admin process"
                 impact="High"
-                mitigation="Prioritize HRIS integration in Phase 4. In the interim, assign P&C team as dedicated admins with monthly audit process."
+                mitigation="Assign P&C team as dedicated admins with a monthly audit process. Build admin tooling that makes profile updates quick and easy."
               />
               <RiskRow
                 risk="Scope creep as stakeholders request features beyond MVP"
@@ -881,19 +701,14 @@ export function PRDContent() {
                 mitigation="Strict adherence to phased rollout plan. New requests are logged and prioritized for future phases. PRD acts as the single source of truth."
               />
               <RiskRow
-                risk="Privacy concerns around employee profile visibility"
+                risk="Admin bottleneck since only P&C can update profiles"
                 impact="Medium"
-                mitigation="Implement role-based access control. Allow employees to control visibility of personal fields (interests, pronouns, etc.)."
+                mitigation="Build efficient bulk-edit and CSV import tools for the P&C team. Establish a clear process for employees to request profile updates."
               />
               <RiskRow
                 risk="Performance issues with large org chart rendering"
                 impact="Low"
                 mitigation="At 75 employees, performance is manageable. Build with virtualization and lazy loading from the start to support future growth to 200+ employees."
-              />
-              <RiskRow
-                risk="Integration complexity with multiple external systems"
-                impact="Medium"
-                mitigation="Start with CSV import and Google SSO (Phase 1). Layer in Slack and HRIS integrations in later phases after core product is stable."
               />
             </CardContent>
           </Card>
