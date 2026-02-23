@@ -1,6 +1,6 @@
 "use client"
 
-import { useTransition } from "react"
+import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { createEmployee, updateEmployee } from "@/app/actions/admin"
+import { PhotoUpload } from "@/components/admin/photo-upload"
 import type { EmployeeWithDepartment, Department } from "@/lib/types"
 
 interface EmployeeFormProps {
@@ -19,6 +20,7 @@ interface EmployeeFormProps {
 
 export function EmployeeForm({ employee, departments, allEmployees, onSuccess }: EmployeeFormProps) {
   const [isPending, startTransition] = useTransition()
+  const [photoUrl, setPhotoUrl] = useState<string | null>(employee?.photo_url || null)
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
@@ -36,6 +38,20 @@ export function EmployeeForm({ employee, departments, allEmployees, onSuccess }:
 
   return (
     <form action={handleSubmit} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
+        <Label className="font-sans">Employee Photo</Label>
+        <PhotoUpload
+          currentPhotoUrl={employee?.photo_url}
+          initials={
+            employee
+              ? `${employee.first_name[0]}${employee.last_name[0]}`
+              : "?"
+          }
+          onPhotoChange={setPhotoUrl}
+        />
+        <input type="hidden" name="photo_url" value={photoUrl || ""} />
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <Label htmlFor="first_name" className="font-sans">First Name *</Label>

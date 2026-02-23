@@ -27,6 +27,7 @@ export async function createEmployee(formData: FormData) {
   const namePronunciation = formData.get("name_pronunciation") as string | null
   const phone = formData.get("phone") as string | null
   const isAdmin = formData.get("is_admin") === "on"
+  const photoUrl = (formData.get("photo_url") as string) || null
 
   // Default password
   const passwordHash = await bcrypt.hash("mysa2026", 10)
@@ -35,13 +36,13 @@ export async function createEmployee(formData: FormData) {
     INSERT INTO employees (
       first_name, last_name, email, job_title, department_id, manager_id,
       location, employment_type, start_date, bio, interests, name_pronunciation,
-      phone, is_admin, password_hash
+      phone, is_admin, password_hash, photo_url
     ) VALUES (
       ${firstName}, ${lastName}, ${email.toLowerCase().trim()}, ${jobTitle},
       ${departmentId || null}, ${managerId || null},
       ${location}, ${employmentType}, ${startDate || null},
       ${bio || null}, ${interests || null}, ${namePronunciation || null},
-      ${phone || null}, ${isAdmin}, ${passwordHash}
+      ${phone || null}, ${isAdmin}, ${passwordHash}, ${photoUrl}
     )
     RETURNING id
   `
@@ -76,6 +77,7 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
   const isAdmin = formData.get("is_admin") === "on"
   const isOnLeave = formData.get("is_on_leave") === "on"
   const leaveNote = formData.get("leave_note") as string | null
+  const photoUrl = (formData.get("photo_url") as string) || null
 
   await sql`
     UPDATE employees SET
@@ -95,6 +97,7 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
       is_admin = ${isAdmin},
       is_on_leave = ${isOnLeave},
       leave_note = ${leaveNote || null},
+      photo_url = ${photoUrl},
       updated_at = NOW()
     WHERE id = ${employeeId}
   `
