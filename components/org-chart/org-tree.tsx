@@ -26,8 +26,8 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot }: OrgTreeBranch
       />
 
       {hasChildren && !isCollapsed && (
-        <div className="flex flex-col items-center w-full">
-          {/* Vertical line down from parent */}
+        <>
+          {/* Single vertical line down from parent to the horizontal rail */}
           <div className="w-px h-8 bg-border" />
 
           {childCount === 1 ? (
@@ -37,29 +37,26 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot }: OrgTreeBranch
               onToggle={onToggle}
             />
           ) : (
-            <div className="flex">
+            /* Children row with a shared horizontal rail */
+            <div className="flex items-start">
               {node.children.map((child, index) => {
                 const isFirst = index === 0
                 const isLast = index === childCount - 1
 
                 return (
-                  <div key={child.id} className="flex flex-col items-center">
-                    {/* Horizontal + vertical connector lines */}
-                    <div
-                      className="h-8 w-full"
-                      style={{
-                        borderColor: "var(--border)",
-                        borderLeft: isFirst ? "none" : "1px solid var(--border)",
-                        borderRight: isLast ? "none" : "1px solid var(--border)",
-                        borderTop: "1px solid var(--border)",
-                        width: "100%",
-                        position: "relative",
-                      }}
-                    >
-                      {/* Center vertical drop line into child */}
+                  <div key={child.id} className="flex flex-col items-center px-1.5">
+                    {/* Horizontal rail segment + vertical drop */}
+                    <div className="relative w-full h-8">
+                      {/* Horizontal rail: extends left half (unless first) and right half (unless last) */}
                       <div
-                        className="absolute left-1/2 -translate-x-1/2 top-0 w-px h-full bg-border"
+                        className="absolute top-0 h-px bg-border"
+                        style={{
+                          left: isFirst ? "50%" : 0,
+                          right: isLast ? "50%" : 0,
+                        }}
                       />
+                      {/* Single vertical drop from rail center into child */}
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-border" />
                     </div>
                     <OrgTreeBranch
                       node={child}
@@ -71,7 +68,7 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot }: OrgTreeBranch
               })}
             </div>
           )}
-        </div>
+        </>
       )}
     </div>
   )

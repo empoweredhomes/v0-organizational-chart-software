@@ -85,8 +85,8 @@ export function OrgNodeCard({ node, isCollapsed, onToggle, isRoot }: OrgNodeCard
           </button>
         )}
 
-        {hasChildren && isCollapsed && (
-          <div className="absolute -bottom-3 right-2 flex items-center gap-0.5 text-[10px] text-muted-foreground font-sans">
+        {hasChildren && (
+          <div className="absolute -top-2.5 -right-2.5 flex items-center gap-0.5 text-[10px] text-muted-foreground font-sans bg-card border rounded-full px-1.5 py-0.5 shadow-sm">
             <Users className="h-3 w-3" />
             {node.children.length}
           </div>
