@@ -14,6 +14,7 @@ interface OrgTreeBranchProps {
 function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot }: OrgTreeBranchProps) {
   const isCollapsed = collapsedNodes.has(node.id)
   const hasChildren = node.children.length > 0
+  const childCount = node.children.length
 
   return (
     <div className="flex flex-col items-center">
@@ -25,40 +26,52 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot }: OrgTreeBranch
       />
 
       {hasChildren && !isCollapsed && (
-        <>
-          {/* Vertical line from parent */}
-          <div className="w-px h-6 bg-border" />
+        <div className="flex flex-col items-center w-full">
+          {/* Vertical line down from parent */}
+          <div className="w-px h-8 bg-border" />
 
-          {/* Horizontal connector for multiple children */}
-          {node.children.length > 1 && (
-            <div className="relative flex items-start">
-              <div
-                className="absolute top-0 bg-border"
-                style={{
-                  height: "1px",
-                  left: `calc(50% / ${node.children.length})`,
-                  right: `calc(50% / ${node.children.length})`,
-                }}
-              />
+          {childCount === 1 ? (
+            <OrgTreeBranch
+              node={node.children[0]}
+              collapsedNodes={collapsedNodes}
+              onToggle={onToggle}
+            />
+          ) : (
+            <div className="flex">
+              {node.children.map((child, index) => {
+                const isFirst = index === 0
+                const isLast = index === childCount - 1
+
+                return (
+                  <div key={child.id} className="flex flex-col items-center">
+                    {/* Horizontal + vertical connector lines */}
+                    <div
+                      className="h-8 w-full"
+                      style={{
+                        borderColor: "var(--border)",
+                        borderLeft: isFirst ? "none" : "1px solid var(--border)",
+                        borderRight: isLast ? "none" : "1px solid var(--border)",
+                        borderTop: "1px solid var(--border)",
+                        width: "100%",
+                        position: "relative",
+                      }}
+                    >
+                      {/* Center vertical drop line into child */}
+                      <div
+                        className="absolute left-1/2 -translate-x-1/2 top-0 w-px h-full bg-border"
+                      />
+                    </div>
+                    <OrgTreeBranch
+                      node={child}
+                      collapsedNodes={collapsedNodes}
+                      onToggle={onToggle}
+                    />
+                  </div>
+                )
+              })}
             </div>
           )}
-
-          {/* Children */}
-          <div className="flex gap-2 pt-0">
-            {node.children.map((child) => (
-              <div key={child.id} className="flex flex-col items-center">
-                {node.children.length > 1 && (
-                  <div className="w-px h-6 bg-border" />
-                )}
-                <OrgTreeBranch
-                  node={child}
-                  collapsedNodes={collapsedNodes}
-                  onToggle={onToggle}
-                />
-              </div>
-            ))}
-          </div>
-        </>
+        </div>
       )}
     </div>
   )
