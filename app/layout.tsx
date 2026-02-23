@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Mysa OrgChart - Product Requirement Document',
-  description: 'Product Requirement Document for Mysa OrgChart, an internal organizational chart and employee directory platform.',
+  title: 'Mysa OrgChart',
+  description: 'Mysa internal organizational chart, employee directory, and people management platform.',
   generator: 'v0.app',
   icons: {
     icon: [
