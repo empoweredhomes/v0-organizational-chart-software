@@ -24,7 +24,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Search, Plus, Pencil, Trash2 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Search, Plus, Pencil, Trash2, ArrowUpDown } from "lucide-react"
 import { EmployeeForm } from "./employee-form"
 import { deleteEmployee } from "@/app/actions/admin"
 import type { EmployeeWithDepartment, Department } from "@/lib/types"
@@ -37,18 +38,38 @@ interface AdminEmployeeTableProps {
 
 export function AdminEmployeeTable({ employees, departments, allEmployees }: AdminEmployeeTableProps) {
   const [search, setSearch] = useState("")
+  const [sortBy, setSortBy] = useState("first-asc")
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isAddOpen, setIsAddOpen] = useState(false)
 
-  const filtered = employees.filter((emp) => {
-    const q = search.toLowerCase()
-    return (
-      emp.first_name.toLowerCase().includes(q) ||
-      emp.last_name.toLowerCase().includes(q) ||
-      emp.email.toLowerCase().includes(q) ||
-      emp.job_title.toLowerCase().includes(q)
-    )
-  })
+  const filtered = employees
+    .filter((emp) => {
+      const q = search.toLowerCase()
+      return (
+        emp.first_name.toLowerCase().includes(q) ||
+        emp.last_name.toLowerCase().includes(q) ||
+        emp.email.toLowerCase().includes(q) ||
+        emp.job_title.toLowerCase().includes(q)
+      )
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "first-asc":
+          return a.first_name.localeCompare(b.first_name)
+        case "first-desc":
+          return b.first_name.localeCompare(a.first_name)
+        case "last-asc":
+          return a.last_name.localeCompare(b.last_name)
+        case "last-desc":
+          return b.last_name.localeCompare(a.last_name)
+        case "department":
+          return (a.department_name || "").localeCompare(b.department_name || "")
+        case "role":
+          return (a.is_admin === b.is_admin) ? 0 : a.is_admin ? -1 : 1
+        default:
+          return 0
+      }
+    })
 
   return (
     <div className="flex flex-col gap-4">
@@ -63,6 +84,21 @@ export function AdminEmployeeTable({ employees, departments, allEmployees }: Adm
             className="pl-9 font-sans"
           />
         </div>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-[180px] font-sans">
+            <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+            <SelectValue placeholder="Sort by..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="first-asc" className="font-sans">First Name A-Z</SelectItem>
+            <SelectItem value="first-desc" className="font-sans">First Name Z-A</SelectItem>
+            <SelectItem value="last-asc" className="font-sans">Last Name A-Z</SelectItem>
+            <SelectItem value="last-desc" className="font-sans">Last Name Z-A</SelectItem>
+            <SelectItem value="department" className="font-sans">Department</SelectItem>
+            <SelectItem value="role" className="font-sans">Role (Admin first)</SelectItem>
+          </SelectContent>
+        </Select>
+
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
             <Button className="font-sans gap-1.5">
