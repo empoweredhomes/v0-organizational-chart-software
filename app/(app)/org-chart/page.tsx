@@ -51,7 +51,7 @@ export default async function OrgChartPage() {
       {/* Org tree */}
       <Card className="border border-border">
         <CardContent className="p-4">
-          <OrgTree tree={tree} />
+          <OrgTree tree={tree} headcounts={headcounts} />
         </CardContent>
       </Card>
     </div>

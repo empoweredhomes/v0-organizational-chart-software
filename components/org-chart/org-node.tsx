@@ -52,19 +52,7 @@ export function OrgNodeCard({ node, isCollapsed, onToggle, isRoot }: OrgNodeCard
             <span className="text-xs text-muted-foreground font-sans mt-0.5 leading-tight text-balance">
               {node.job_title}
             </span>
-            {node.department_name && (
-              <Badge
-                variant="secondary"
-                className="mt-1.5 text-[10px] px-1.5 py-0 font-sans"
-                style={
-                  node.department_color
-                    ? { backgroundColor: node.department_color + "18", color: node.department_color }
-                    : undefined
-                }
-              >
-                {node.department_name}
-              </Badge>
-            )}
+
           </div>
         </Link>
 

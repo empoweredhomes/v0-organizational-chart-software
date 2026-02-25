@@ -4,20 +4,59 @@ import { useState, useCallback } from "react"
 import { OrgNodeCard } from "./org-node"
 import type { OrgNode } from "@/lib/types"
 
+interface DepartmentHeadcount {
+  department_name: string
+  color: string
+  count: number
+}
+
 interface OrgTreeBranchProps {
   node: OrgNode
   collapsedNodes: Set<string>
   onToggle: (id: string) => void
   isRoot?: boolean
+  parentDepartment?: string | null
+  headcounts: Map<string, DepartmentHeadcount>
 }
 
-function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot }: OrgTreeBranchProps) {
+function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartment, headcounts }: OrgTreeBranchProps) {
   const isCollapsed = collapsedNodes.has(node.id)
   const hasChildren = node.children.length > 0
   const childCount = node.children.length
 
+  // Show department banner when this node's department differs from parent's
+  const showDeptBanner = !isRoot && node.department_name && node.department_name !== parentDepartment
+  const deptInfo = showDeptBanner ? headcounts.get(node.department_name!) : null
+
   return (
     <div className="flex flex-col items-center">
+      {showDeptBanner && (
+        <>
+          <div
+            className="flex items-center justify-between rounded-md border px-3 py-1.5 w-48 font-sans"
+            style={{
+              borderColor: node.department_color || "var(--border)",
+              backgroundColor: (node.department_color || "#6366f1") + "12",
+            }}
+          >
+            <span
+              className="text-sm font-semibold leading-tight"
+              style={{ color: node.department_color || "var(--foreground)" }}
+            >
+              {node.department_name}
+            </span>
+            <span
+              className="text-sm font-semibold tabular-nums"
+              style={{ color: node.department_color || "var(--muted-foreground)" }}
+            >
+              {deptInfo?.count ?? ""}
+            </span>
+          </div>
+          {/* Vertical line from department banner to person card */}
+          <div className="w-px h-6 bg-border" />
+        </>
+      )}
+
       <OrgNodeCard
         node={node}
         isCollapsed={isCollapsed}
@@ -35,6 +74,8 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot }: OrgTreeBranch
               node={node.children[0]}
               collapsedNodes={collapsedNodes}
               onToggle={onToggle}
+              parentDepartment={node.department_name}
+              headcounts={headcounts}
             />
           ) : (
             /* Children row with a shared horizontal rail */
@@ -62,6 +103,8 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot }: OrgTreeBranch
                       node={child}
                       collapsedNodes={collapsedNodes}
                       onToggle={onToggle}
+                      parentDepartment={node.department_name}
+                      headcounts={headcounts}
                     />
                   </div>
                 )
@@ -76,9 +119,14 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot }: OrgTreeBranch
 
 interface OrgTreeProps {
   tree: OrgNode[]
+  headcounts: DepartmentHeadcount[]
 }
 
-export function OrgTree({ tree }: OrgTreeProps) {
+export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
+  const headcountsMap = new Map<string, DepartmentHeadcount>()
+  for (const hc of headcountsList) {
+    headcountsMap.set(hc.department_name, hc)
+  }
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(() => {
     // Start with level 3+ collapsed for readability
     const collapsed = new Set<string>()
@@ -151,6 +199,8 @@ export function OrgTree({ tree }: OrgTreeProps) {
               collapsedNodes={collapsedNodes}
               onToggle={toggleNode}
               isRoot
+              parentDepartment={null}
+              headcounts={headcountsMap}
             />
           ))}
         </div>
