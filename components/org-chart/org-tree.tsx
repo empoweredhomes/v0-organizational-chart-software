@@ -45,6 +45,20 @@ function DepartmentBanner({ name, color, count }: { name: string; color?: string
   )
 }
 
+// Counts all nodes in a subtree (including the root node itself)
+function countSubtree(node: OrgNode): number {
+  let count = 1
+  for (const child of node.children) {
+    count += countSubtree(child)
+  }
+  return count
+}
+
+// Counts all nodes across multiple subtrees
+function countSubtrees(nodes: OrgNode[]): number {
+  return nodes.reduce((sum, node) => sum + countSubtree(node), 0)
+}
+
 // Groups consecutive children that share the same "new" department
 // (i.e. department differs from parent) into grouped entries
 interface DeptGroup {
@@ -60,7 +74,7 @@ interface SingleChild {
 }
 type ChildEntry = DeptGroup | SingleChild
 
-function groupChildrenByDept(children: OrgNode[], parentDept: string | null, headcounts: Map<string, DepartmentHeadcount>): ChildEntry[] {
+function groupChildrenByDept(children: OrgNode[], parentDept: string | null): ChildEntry[] {
   const entries: ChildEntry[] = []
   const deptGroupMap = new Map<string, DeptGroup>()
 
@@ -71,13 +85,14 @@ function groupChildrenByDept(children: OrgNode[], parentDept: string | null, hea
       const existing = deptGroupMap.get(child.department_name!)
       if (existing) {
         existing.children.push(child)
+        // Recalculate count to include new child's subtree
+        existing.count = countSubtrees(existing.children)
       } else {
-        const hc = headcounts.get(child.department_name!)
         const group: DeptGroup = {
           type: "group",
           department: child.department_name!,
           color: child.department_color || null,
-          count: hc?.count ?? 0,
+          count: countSubtree(child),
           children: [child],
         }
         deptGroupMap.set(child.department_name!, group)
@@ -163,7 +178,7 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartmen
           <div className="w-px h-8 bg-border" />
 
           {(() => {
-            const entries = groupChildrenByDept(node.children, node.department_name, headcounts)
+            const entries = groupChildrenByDept(node.children, node.department_name)
             const totalEntries = entries.length
 
             if (totalEntries === 1) {
