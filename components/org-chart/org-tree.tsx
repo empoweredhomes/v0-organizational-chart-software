@@ -139,13 +139,13 @@ function ChildrenRail({ children, parentDepartment, collapsedNodes, onToggle, he
           <div key={child.id} className="flex flex-col items-center px-1.5">
             <div className="relative w-full h-8">
               <div
-                className="absolute top-0 h-px bg-border"
+                className="absolute top-0 h-[1.5px] bg-border"
                 style={{
-                  left: isFirst ? "50%" : 0,
-                  right: isLast ? "50%" : 0,
+                  left: isFirst ? "50%" : "-6px",
+                  right: isLast ? "50%" : "-6px",
                 }}
               />
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-border" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1.5px] h-full bg-border" />
             </div>
             <OrgTreeBranch
               node={child}
@@ -180,7 +180,7 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartmen
       {hasChildren && !isCollapsed && (
         <>
           {/* Single vertical line down from parent to the horizontal rail */}
-          <div className="w-px h-8 bg-border" />
+          <div className="w-[1.5px] h-8 bg-border" />
 
           {(() => {
             const entries = groupChildrenByDept(node.children, node.department_name)
@@ -192,7 +192,7 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartmen
                 return (
                   <div className="flex flex-col items-center">
                     <DepartmentBanner name={entry.department} color={entry.color} count={entry.count} />
-                    <div className="w-px h-6 bg-border" />
+                    <div className="w-[1.5px] h-6 bg-border" />
                     <ChildrenRail
                       children={entry.children}
                       parentDepartment={entry.department}
@@ -228,19 +228,19 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartmen
                       {/* Horizontal rail segment + vertical drop */}
                       <div className="relative w-full h-8">
                         <div
-                          className="absolute top-0 h-px bg-border"
+                          className="absolute top-0 h-[1.5px] bg-border"
                           style={{
-                            left: isFirst ? "50%" : 0,
-                            right: isLast ? "50%" : 0,
+                            left: isFirst ? "50%" : "-6px",
+                            right: isLast ? "50%" : "-6px",
                           }}
                         />
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-border" />
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1.5px] h-full bg-border" />
                       </div>
 
                       {entry.type === "group" ? (
                         <div className="flex flex-col items-center">
                           <DepartmentBanner name={entry.department} color={entry.color} count={entry.count} />
-                          <div className="w-px h-6 bg-border" />
+                          <div className="w-[1.5px] h-6 bg-border" />
                           <ChildrenRail
                             children={entry.children}
                             parentDepartment={entry.department}
