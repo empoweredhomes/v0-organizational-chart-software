@@ -215,6 +215,17 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartmen
                     />
                   </div>
                 )
+              } else if (entry.type === "singles") {
+                return (
+                  <ChildrenRail
+                    children={entry.children}
+                    parentDepartment={node.department_name}
+                    collapsedNodes={collapsedNodes}
+                    onToggle={onToggle}
+                    headcounts={headcounts}
+                    highlightId={highlightId}
+                  />
+                )
               } else {
                 return (
                   <OrgTreeBranch
