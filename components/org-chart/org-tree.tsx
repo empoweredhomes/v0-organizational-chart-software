@@ -19,44 +19,137 @@ interface OrgTreeBranchProps {
   headcounts: Map<string, DepartmentHeadcount>
 }
 
-function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartment, headcounts }: OrgTreeBranchProps) {
+// Department banner component
+function DepartmentBanner({ name, color, count }: { name: string; color?: string | null; count?: number }) {
+  return (
+    <div
+      className="flex items-center justify-between rounded-md border px-3 py-1.5 w-48 font-sans"
+      style={{
+        borderColor: color || "var(--border)",
+        backgroundColor: (color || "#6366f1") + "12",
+      }}
+    >
+      <span
+        className="text-sm font-semibold leading-tight"
+        style={{ color: color || "var(--foreground)" }}
+      >
+        {name}
+      </span>
+      <span
+        className="text-sm font-semibold tabular-nums"
+        style={{ color: color || "var(--muted-foreground)" }}
+      >
+        {count ?? ""}
+      </span>
+    </div>
+  )
+}
+
+// Groups consecutive children that share the same "new" department
+// (i.e. department differs from parent) into grouped entries
+interface DeptGroup {
+  type: "group"
+  department: string
+  color: string | null
+  count: number
+  children: OrgNode[]
+}
+interface SingleChild {
+  type: "single"
+  child: OrgNode
+}
+type ChildEntry = DeptGroup | SingleChild
+
+function groupChildrenByDept(children: OrgNode[], parentDept: string | null, headcounts: Map<string, DepartmentHeadcount>): ChildEntry[] {
+  const entries: ChildEntry[] = []
+  const deptGroupMap = new Map<string, DeptGroup>()
+
+  for (const child of children) {
+    const isNewDept = child.department_name && child.department_name !== parentDept
+
+    if (isNewDept) {
+      const existing = deptGroupMap.get(child.department_name!)
+      if (existing) {
+        existing.children.push(child)
+      } else {
+        const hc = headcounts.get(child.department_name!)
+        const group: DeptGroup = {
+          type: "group",
+          department: child.department_name!,
+          color: child.department_color || null,
+          count: hc?.count ?? 0,
+          children: [child],
+        }
+        deptGroupMap.set(child.department_name!, group)
+        entries.push(group)
+      }
+    } else {
+      entries.push({ type: "single", child })
+    }
+  }
+
+  return entries
+}
+
+// Renders children (one or more) under a connector rail
+function ChildrenRail({ children, parentDepartment, collapsedNodes, onToggle, headcounts }: {
+  children: OrgNode[]
+  parentDepartment: string | null
+  collapsedNodes: Set<string>
+  onToggle: (id: string) => void
+  headcounts: Map<string, DepartmentHeadcount>
+}) {
+  if (children.length === 1) {
+    return (
+      <OrgTreeBranch
+        node={children[0]}
+        collapsedNodes={collapsedNodes}
+        onToggle={onToggle}
+        parentDepartment={parentDepartment}
+        headcounts={headcounts}
+        showBanner={false}
+      />
+    )
+  }
+
+  return (
+    <div className="flex items-start">
+      {children.map((child, index) => {
+        const isFirst = index === 0
+        const isLast = index === children.length - 1
+        return (
+          <div key={child.id} className="flex flex-col items-center px-1.5">
+            <div className="relative w-full h-8">
+              <div
+                className="absolute top-0 h-px bg-border"
+                style={{
+                  left: isFirst ? "50%" : 0,
+                  right: isLast ? "50%" : 0,
+                }}
+              />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-border" />
+            </div>
+            <OrgTreeBranch
+              node={child}
+              collapsedNodes={collapsedNodes}
+              onToggle={onToggle}
+              parentDepartment={parentDepartment}
+              headcounts={headcounts}
+              showBanner={false}
+            />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartment, headcounts, showBanner = true }: OrgTreeBranchProps & { showBanner?: boolean }) {
   const isCollapsed = collapsedNodes.has(node.id)
   const hasChildren = node.children.length > 0
-  const childCount = node.children.length
-
-  // Show department banner when this node's department differs from parent's
-  const showDeptBanner = !isRoot && node.department_name && node.department_name !== parentDepartment
-  const deptInfo = showDeptBanner ? headcounts.get(node.department_name!) : null
 
   return (
     <div className="flex flex-col items-center">
-      {showDeptBanner && (
-        <>
-          <div
-            className="flex items-center justify-between rounded-md border px-3 py-1.5 w-48 font-sans"
-            style={{
-              borderColor: node.department_color || "var(--border)",
-              backgroundColor: (node.department_color || "#6366f1") + "12",
-            }}
-          >
-            <span
-              className="text-sm font-semibold leading-tight"
-              style={{ color: node.department_color || "var(--foreground)" }}
-            >
-              {node.department_name}
-            </span>
-            <span
-              className="text-sm font-semibold tabular-nums"
-              style={{ color: node.department_color || "var(--muted-foreground)" }}
-            >
-              {deptInfo?.count ?? ""}
-            </span>
-          </div>
-          {/* Vertical line from department banner to person card */}
-          <div className="w-px h-6 bg-border" />
-        </>
-      )}
-
       <OrgNodeCard
         node={node}
         isCollapsed={isCollapsed}
@@ -69,48 +162,86 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartmen
           {/* Single vertical line down from parent to the horizontal rail */}
           <div className="w-px h-8 bg-border" />
 
-          {childCount === 1 ? (
-            <OrgTreeBranch
-              node={node.children[0]}
-              collapsedNodes={collapsedNodes}
-              onToggle={onToggle}
-              parentDepartment={node.department_name}
-              headcounts={headcounts}
-            />
-          ) : (
-            /* Children row with a shared horizontal rail */
-            <div className="flex items-start">
-              {node.children.map((child, index) => {
-                const isFirst = index === 0
-                const isLast = index === childCount - 1
+          {(() => {
+            const entries = groupChildrenByDept(node.children, node.department_name, headcounts)
+            const totalEntries = entries.length
 
+            if (totalEntries === 1) {
+              const entry = entries[0]
+              if (entry.type === "group") {
                 return (
-                  <div key={child.id} className="flex flex-col items-center px-1.5">
-                    {/* Horizontal rail segment + vertical drop */}
-                    <div className="relative w-full h-8">
-                      {/* Horizontal rail: extends left half (unless first) and right half (unless last) */}
-                      <div
-                        className="absolute top-0 h-px bg-border"
-                        style={{
-                          left: isFirst ? "50%" : 0,
-                          right: isLast ? "50%" : 0,
-                        }}
-                      />
-                      {/* Single vertical drop from rail center into child */}
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-border" />
-                    </div>
-                    <OrgTreeBranch
-                      node={child}
+                  <div className="flex flex-col items-center">
+                    <DepartmentBanner name={entry.department} color={entry.color} count={entry.count} />
+                    <div className="w-px h-6 bg-border" />
+                    <ChildrenRail
+                      children={entry.children}
+                      parentDepartment={entry.department}
                       collapsedNodes={collapsedNodes}
                       onToggle={onToggle}
-                      parentDepartment={node.department_name}
                       headcounts={headcounts}
                     />
                   </div>
                 )
-              })}
-            </div>
-          )}
+              } else {
+                return (
+                  <OrgTreeBranch
+                    node={entry.child}
+                    collapsedNodes={collapsedNodes}
+                    onToggle={onToggle}
+                    parentDepartment={node.department_name}
+                    headcounts={headcounts}
+                  />
+                )
+              }
+            }
+
+            return (
+              <div className="flex items-start">
+                {entries.map((entry, index) => {
+                  const isFirst = index === 0
+                  const isLast = index === totalEntries - 1
+
+                  return (
+                    <div key={entry.type === "group" ? entry.department : entry.child.id} className="flex flex-col items-center px-1.5">
+                      {/* Horizontal rail segment + vertical drop */}
+                      <div className="relative w-full h-8">
+                        <div
+                          className="absolute top-0 h-px bg-border"
+                          style={{
+                            left: isFirst ? "50%" : 0,
+                            right: isLast ? "50%" : 0,
+                          }}
+                        />
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-border" />
+                      </div>
+
+                      {entry.type === "group" ? (
+                        <div className="flex flex-col items-center">
+                          <DepartmentBanner name={entry.department} color={entry.color} count={entry.count} />
+                          <div className="w-px h-6 bg-border" />
+                          <ChildrenRail
+                            children={entry.children}
+                            parentDepartment={entry.department}
+                            collapsedNodes={collapsedNodes}
+                            onToggle={onToggle}
+                            headcounts={headcounts}
+                          />
+                        </div>
+                      ) : (
+                        <OrgTreeBranch
+                          node={entry.child}
+                          collapsedNodes={collapsedNodes}
+                          onToggle={onToggle}
+                          parentDepartment={node.department_name}
+                          headcounts={headcounts}
+                        />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })()}
         </>
       )}
     </div>
