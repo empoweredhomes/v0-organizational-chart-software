@@ -11,7 +11,7 @@ async function getDefaultUser(): Promise<SessionUser> {
            d.name as department_name
     FROM employees e
     LEFT JOIN departments d ON e.department_id = d.id
-    WHERE e.is_admin = true
+    WHERE e.email = 'ameerah.mallamhassam@getmysa.com'
     LIMIT 1
   `
   if (rows.length > 0) {
