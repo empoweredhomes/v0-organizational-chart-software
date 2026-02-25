@@ -73,11 +73,16 @@ interface SingleChild {
   type: "single"
   child: OrgNode
 }
-type ChildEntry = DeptGroup | SingleChild
+interface SinglesCluster {
+  type: "singles"
+  children: OrgNode[]
+}
+type ChildEntry = DeptGroup | SingleChild | SinglesCluster
 
 function groupChildrenByDept(children: OrgNode[], parentDept: string | null): ChildEntry[] {
   const entries: ChildEntry[] = []
   const deptGroupMap = new Map<string, DeptGroup>()
+  const singles: OrgNode[] = []
 
   for (const child of children) {
     const isNewDept = child.department_name && child.department_name !== parentDept
@@ -100,8 +105,15 @@ function groupChildrenByDept(children: OrgNode[], parentDept: string | null): Ch
         entries.push(group)
       }
     } else {
-      entries.push({ type: "single", child })
+      singles.push(child)
     }
+  }
+
+  // Consolidate all singles into one cluster at the end
+  if (singles.length === 1) {
+    entries.push({ type: "single", child: singles[0] })
+  } else if (singles.length > 1) {
+    entries.push({ type: "singles", children: singles })
   }
 
   return entries
@@ -224,7 +236,7 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartmen
                   const isLast = index === totalEntries - 1
 
                   return (
-                    <div key={entry.type === "group" ? entry.department : entry.child.id} className="flex flex-col items-center px-1.5">
+                    <div key={entry.type === "group" ? entry.department : entry.type === "singles" ? "singles-cluster" : entry.child.id} className="flex flex-col items-center px-1.5">
                       {/* Horizontal rail segment + vertical drop */}
                       <div className="relative w-full h-8">
                         <div
@@ -250,6 +262,15 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartmen
                             highlightId={highlightId}
                           />
                         </div>
+                      ) : entry.type === "singles" ? (
+                        <ChildrenRail
+                          children={entry.children}
+                          parentDepartment={node.department_name}
+                          collapsedNodes={collapsedNodes}
+                          onToggle={onToggle}
+                          headcounts={headcounts}
+                          highlightId={highlightId}
+                        />
                       ) : (
                         <OrgTreeBranch
                           node={entry.child}
