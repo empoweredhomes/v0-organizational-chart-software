@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { OrgNodeCard } from "./org-node"
+import { Search, X } from "lucide-react"
 import type { OrgNode } from "@/lib/types"
 
 interface DepartmentHeadcount {
@@ -107,12 +108,13 @@ function groupChildrenByDept(children: OrgNode[], parentDept: string | null): Ch
 }
 
 // Renders children (one or more) under a connector rail
-function ChildrenRail({ children, parentDepartment, collapsedNodes, onToggle, headcounts }: {
+function ChildrenRail({ children, parentDepartment, collapsedNodes, onToggle, headcounts, highlightId }: {
   children: OrgNode[]
   parentDepartment: string | null
   collapsedNodes: Set<string>
   onToggle: (id: string) => void
   headcounts: Map<string, DepartmentHeadcount>
+  highlightId?: string | null
 }) {
   if (children.length === 1) {
     return (
@@ -123,6 +125,7 @@ function ChildrenRail({ children, parentDepartment, collapsedNodes, onToggle, he
         parentDepartment={parentDepartment}
         headcounts={headcounts}
         showBanner={false}
+        highlightId={highlightId}
       />
     )
   }
@@ -151,6 +154,7 @@ function ChildrenRail({ children, parentDepartment, collapsedNodes, onToggle, he
               parentDepartment={parentDepartment}
               headcounts={headcounts}
               showBanner={false}
+              highlightId={highlightId}
             />
           </div>
         )
@@ -159,7 +163,7 @@ function ChildrenRail({ children, parentDepartment, collapsedNodes, onToggle, he
   )
 }
 
-function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartment, headcounts, showBanner = true }: OrgTreeBranchProps & { showBanner?: boolean }) {
+function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartment, headcounts, showBanner = true, highlightId }: OrgTreeBranchProps & { showBanner?: boolean; highlightId?: string | null }) {
   const isCollapsed = collapsedNodes.has(node.id)
   const hasChildren = node.children.length > 0
 
@@ -170,6 +174,7 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartmen
         isCollapsed={isCollapsed}
         onToggle={() => onToggle(node.id)}
         isRoot={isRoot}
+        isHighlighted={highlightId === node.id}
       />
 
       {hasChildren && !isCollapsed && (
@@ -194,6 +199,7 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartmen
                       collapsedNodes={collapsedNodes}
                       onToggle={onToggle}
                       headcounts={headcounts}
+                      highlightId={highlightId}
                     />
                   </div>
                 )
@@ -205,6 +211,7 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartmen
                     onToggle={onToggle}
                     parentDepartment={node.department_name}
                     headcounts={headcounts}
+                    highlightId={highlightId}
                   />
                 )
               }
@@ -240,6 +247,7 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartmen
                             collapsedNodes={collapsedNodes}
                             onToggle={onToggle}
                             headcounts={headcounts}
+                            highlightId={highlightId}
                           />
                         </div>
                       ) : (
@@ -249,6 +257,7 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartmen
                           onToggle={onToggle}
                           parentDepartment={node.department_name}
                           headcounts={headcounts}
+                          highlightId={highlightId}
                         />
                       )}
                     </div>
@@ -268,13 +277,41 @@ interface OrgTreeProps {
   headcounts: DepartmentHeadcount[]
 }
 
+// Flatten the tree into a list of { id, name, path } for searching
+function flattenTree(nodes: OrgNode[], path: string[] = []): { id: string; name: string; title: string; ancestorIds: string[] }[] {
+  const result: { id: string; name: string; title: string; ancestorIds: string[] }[] = []
+  for (const node of nodes) {
+    result.push({
+      id: node.id,
+      name: `${node.first_name} ${node.last_name}`,
+      title: node.job_title,
+      ancestorIds: [...path],
+    })
+    result.push(...flattenTree(node.children, [...path, node.id]))
+  }
+  return result
+}
+
 export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
   const headcountsMap = new Map<string, DepartmentHeadcount>()
   for (const hc of headcountsList) {
     headcountsMap.set(hc.department_name, hc)
   }
+
+  const [search, setSearch] = useState("")
+  const [highlightId, setHighlightId] = useState<string | null>(null)
+
+  const flatList = useMemo(() => flattenTree(tree), [tree])
+
+  const searchResults = useMemo(() => {
+    if (search.length < 2) return []
+    const q = search.toLowerCase()
+    return flatList.filter(
+      (e) => e.name.toLowerCase().includes(q) || e.title.toLowerCase().includes(q)
+    ).slice(0, 8)
+  }, [search, flatList])
+
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(() => {
-    // Start with level 3+ collapsed for readability
     const collapsed = new Set<string>()
     function walkTree(nodes: OrgNode[], depth: number) {
       for (const node of nodes) {
@@ -318,22 +355,78 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
     setCollapsedNodes(collapsed)
   }, [tree])
 
+  const selectEmployee = useCallback((entry: { id: string; ancestorIds: string[] }) => {
+    // Expand all ancestors so the node is visible
+    setCollapsedNodes((prev) => {
+      const next = new Set(prev)
+      for (const aid of entry.ancestorIds) {
+        next.delete(aid)
+      }
+      return next
+    })
+    setHighlightId(entry.id)
+    setSearch("")
+    // Scroll to the node after a short delay
+    setTimeout(() => {
+      const el = document.getElementById(`org-node-${entry.id}`)
+      el?.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" })
+    }, 150)
+  }, [])
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2 px-1">
-        <button
-          onClick={expandAll}
-          className="text-xs text-primary hover:underline font-sans"
-        >
-          Expand all
-        </button>
-        <span className="text-xs text-muted-foreground">/</span>
-        <button
-          onClick={collapseAll}
-          className="text-xs text-primary hover:underline font-sans"
-        >
-          Collapse all
-        </button>
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={expandAll}
+            className="text-xs text-primary hover:underline font-sans"
+          >
+            Expand all
+          </button>
+          <span className="text-xs text-muted-foreground">/</span>
+          <button
+            onClick={collapseAll}
+            className="text-xs text-primary hover:underline font-sans"
+          >
+            Collapse all
+          </button>
+        </div>
+
+        {/* Search bar */}
+        <div className="relative">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setHighlightId(null) }}
+              placeholder="Search employee..."
+              className="h-8 w-56 rounded-md border border-border bg-background pl-8 pr-8 text-sm font-sans placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+            {search && (
+              <button
+                onClick={() => { setSearch(""); setHighlightId(null) }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+          {searchResults.length > 0 && (
+            <div className="absolute right-0 top-full mt-1 z-50 w-72 rounded-md border border-border bg-card shadow-lg overflow-hidden">
+              {searchResults.map((entry) => (
+                <button
+                  key={entry.id}
+                  onClick={() => selectEmployee(entry)}
+                  className="w-full text-left px-3 py-2 hover:bg-accent/50 transition-colors border-b border-border last:border-b-0"
+                >
+                  <p className="text-sm font-medium font-sans text-foreground">{entry.name}</p>
+                  <p className="text-xs text-muted-foreground font-sans">{entry.title}</p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="overflow-auto">
@@ -347,6 +440,7 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
               isRoot
               parentDepartment={null}
               headcounts={headcountsMap}
+              highlightId={highlightId}
             />
           ))}
         </div>

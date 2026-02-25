@@ -11,19 +11,21 @@ interface OrgNodeCardProps {
   isCollapsed: boolean
   onToggle: () => void
   isRoot?: boolean
+  isHighlighted?: boolean
 }
 
-export function OrgNodeCard({ node, isCollapsed, onToggle, isRoot }: OrgNodeCardProps) {
+export function OrgNodeCard({ node, isCollapsed, onToggle, isRoot, isHighlighted }: OrgNodeCardProps) {
   const initials = `${node.first_name[0]}${node.last_name[0]}`
   const hasChildren = node.children.length > 0
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center" id={`org-node-${node.id}`}>
       <div
         className={`
           relative flex flex-col items-center rounded-lg border bg-card p-3 shadow-sm
           transition-all hover:shadow-md w-48
           ${isRoot ? "border-primary/30 shadow-md" : "border-border"}
+          ${isHighlighted ? "ring-2 ring-primary ring-offset-2 shadow-lg" : ""}
         `}
         style={
           node.department_color
