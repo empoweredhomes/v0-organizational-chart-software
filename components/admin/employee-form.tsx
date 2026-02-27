@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useRef } from "react"
+import { format, parse, isValid } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,6 +22,14 @@ interface EmployeeFormProps {
 export function EmployeeForm({ employee, departments, allEmployees, onSuccess }: EmployeeFormProps) {
   const [isPending, startTransition] = useTransition()
   const [photoUrl, setPhotoUrl] = useState<string | null>(employee?.photo_url || null)
+  const dateInputRef = useRef<HTMLInputElement>(null)
+  const [startDate, setStartDate] = useState(() => {
+    if (!employee?.start_date) return ""
+    return new Date(employee.start_date).toISOString().split("T")[0]
+  })
+  const formattedStartDate = startDate
+    ? format(new Date(startDate + "T00:00:00"), "dd-MMM-yy")
+    : ""
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
@@ -166,13 +175,23 @@ export function EmployeeForm({ employee, departments, allEmployees, onSuccess }:
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <Label htmlFor="start_date" className="font-sans">Start Date</Label>
-          <Input
-            id="start_date"
-            name="start_date"
-            type="date"
-            defaultValue={employee?.start_date ? new Date(employee.start_date).toISOString().split("T")[0] : ""}
-            className="font-sans"
-          />
+          <div className="relative">
+            <input
+              ref={dateInputRef}
+              type="date"
+              name="start_date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+              tabIndex={-1}
+            />
+            <div
+              onClick={() => dateInputRef.current?.showPicker?.()}
+              className="flex h-9 w-full items-center rounded-md border border-input bg-transparent px-3 py-1 text-sm font-sans cursor-pointer hover:bg-accent/50 transition-colors"
+            >
+              {formattedStartDate || <span className="text-muted-foreground">Select date</span>}
+            </div>
+          </div>
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="phone" className="font-sans">Phone</Label>
