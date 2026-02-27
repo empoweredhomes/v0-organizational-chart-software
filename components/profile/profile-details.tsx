@@ -9,7 +9,7 @@ interface ProfileDetailsProps {
 
 export function ProfileDetails({ employee }: ProfileDetailsProps) {
   const startDate = employee.start_date
-    ? format(new Date(employee.start_date), "MMMM d, yyyy")
+    ? format(new Date(employee.start_date), "dd-MMM-yy")
     : null
 
   return (
