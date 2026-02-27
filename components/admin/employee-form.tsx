@@ -170,7 +170,7 @@ export function EmployeeForm({ employee, departments, allEmployees, onSuccess }:
             id="start_date"
             name="start_date"
             type="date"
-            defaultValue={employee?.start_date || ""}
+            defaultValue={employee?.start_date ? new Date(employee.start_date).toISOString().split("T")[0] : ""}
             className="font-sans"
           />
         </div>
