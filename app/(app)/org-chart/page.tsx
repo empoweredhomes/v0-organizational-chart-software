@@ -11,6 +11,7 @@ export default async function OrgChartPage() {
   ])
 
   const totalEmployees = headcounts.reduce((sum, d) => sum + d.count, 0)
+  console.log("[v0] OrgChart loaded:", tree.length, "roots,", totalEmployees, "employees")
 
   return (
     <div className="flex flex-col gap-6 p-6">
