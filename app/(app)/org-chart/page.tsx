@@ -5,10 +5,18 @@ import { Card, CardContent } from "@/components/ui/card"
 import { GitBranch, Users } from "lucide-react"
 
 export default async function OrgChartPage() {
-  const [tree, headcounts] = await Promise.all([
-    getOrgTree(),
-    getDepartmentHeadcounts(),
-  ])
+  let tree: Awaited<ReturnType<typeof getOrgTree>> = []
+  let headcounts: Awaited<ReturnType<typeof getDepartmentHeadcounts>> = []
+
+  try {
+    ;[tree, headcounts] = await Promise.all([
+      getOrgTree(),
+      getDepartmentHeadcounts(),
+    ])
+  } catch (err) {
+    console.error("[v0] OrgChart error:", err)
+    return <div className="p-6 text-destructive font-sans">Failed to load org chart. Check console for details.</div>
+  }
 
   const totalEmployees = headcounts.reduce((sum, d) => sum + d.count, 0)
   console.log("[v0] OrgChart loaded:", tree.length, "roots,", totalEmployees, "employees")
