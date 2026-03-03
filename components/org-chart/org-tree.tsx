@@ -1,9 +1,13 @@
 "use client"
 
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { OrgNodeCard } from "./org-node"
-import { Search, X } from "lucide-react"
+import { Search, X, ZoomIn, ZoomOut, Maximize } from "lucide-react"
 import type { OrgNode } from "@/lib/types"
+
+const ZOOM_STEP = 0.1
+const MIN_ZOOM = 0.2
+const MAX_ZOOM = 1.5
 
 interface DepartmentHeadcount {
   department_name: string
@@ -332,6 +336,23 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
 
   const [search, setSearch] = useState("")
   const [highlightId, setHighlightId] = useState<string | null>(null)
+  const [zoom, setZoom] = useState(0.55)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  const zoomIn = useCallback(() => setZoom((z) => Math.min(MAX_ZOOM, z + ZOOM_STEP)), [])
+  const zoomOut = useCallback(() => setZoom((z) => Math.max(MIN_ZOOM, z - ZOOM_STEP)), [])
+  const fitToScreen = useCallback(() => {
+    if (!containerRef.current || !contentRef.current) return
+    const container = containerRef.current.getBoundingClientRect()
+    const content = contentRef.current
+    // Reset zoom to 1 to measure actual size
+    const actualWidth = content.scrollWidth / zoom
+    const actualHeight = content.scrollHeight / zoom
+    const scaleX = (container.width - 32) / actualWidth
+    const scaleY = (container.height - 32) / actualHeight
+    setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.min(scaleX, scaleY))))
+  }, [zoom])
 
   const flatList = useMemo(() => flattenTree(tree), [tree])
 
@@ -461,8 +482,15 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
         </div>
       </div>
 
-      <div className="overflow-auto">
-        <div className="inline-flex flex-col items-center min-w-max p-8">
+      <div ref={containerRef} className="relative overflow-auto flex-1" style={{ minHeight: "70vh" }}>
+        <div
+          ref={contentRef}
+          className="inline-flex flex-col items-center min-w-max p-8"
+          style={{
+            transform: `scale(${zoom})`,
+            transformOrigin: "top center",
+          }}
+        >
           {tree.map((root) => (
             <OrgTreeBranch
               key={root.id}
@@ -475,6 +503,35 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
               highlightId={highlightId}
             />
           ))}
+        </div>
+
+        {/* Zoom controls - bottom right */}
+        <div className="sticky bottom-4 float-right mr-4 flex items-center gap-1 rounded-lg border border-border bg-card shadow-md p-1">
+          <button
+            onClick={zoomOut}
+            className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors"
+            title="Zoom out"
+          >
+            <ZoomOut className="h-4 w-4 text-foreground" />
+          </button>
+          <span className="text-xs font-mono text-muted-foreground w-12 text-center select-none">
+            {Math.round(zoom * 100)}%
+          </span>
+          <button
+            onClick={zoomIn}
+            className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors"
+            title="Zoom in"
+          >
+            <ZoomIn className="h-4 w-4 text-foreground" />
+          </button>
+          <div className="w-px h-5 bg-border mx-0.5" />
+          <button
+            onClick={fitToScreen}
+            className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors"
+            title="Fit to screen"
+          >
+            <Maximize className="h-4 w-4 text-foreground" />
+          </button>
         </div>
       </div>
     </div>
