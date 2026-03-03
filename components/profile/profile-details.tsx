@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Mail, Phone, MapPin, Calendar, Briefcase, Heart } from "lucide-react"
+import { Mail, Phone, Calendar, Heart } from "lucide-react"
 import { format } from "date-fns"
 import type { EmployeeWithDetails } from "@/lib/types"
 
@@ -56,13 +56,7 @@ export function ProfileDetails({ employee }: ProfileDetailsProps) {
                 </div>
               </div>
             )}
-            <div className="flex items-center gap-3">
-              <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-              <div>
-                <p className="text-xs text-muted-foreground font-sans">Location</p>
-                <p className="text-sm text-card-foreground font-sans">{employee.location}</p>
-              </div>
-            </div>
+
           </div>
         </CardContent>
       </Card>
@@ -74,13 +68,7 @@ export function ProfileDetails({ employee }: ProfileDetailsProps) {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <Briefcase className="h-4 w-4 text-muted-foreground shrink-0" />
-              <div>
-                <p className="text-xs text-muted-foreground font-sans">Employment Type</p>
-                <p className="text-sm text-card-foreground font-sans">{employee.employment_type}</p>
-              </div>
-            </div>
+
             {startDate && (
               <div className="flex items-center gap-3">
                 <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
