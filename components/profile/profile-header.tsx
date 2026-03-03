@@ -75,12 +75,7 @@ export function ProfileHeader({ employee }: ProfileHeaderProps) {
                 {employee.department_name}
               </Badge>
             )}
-            <Badge variant="outline" className="text-xs font-sans">
-              {employee.location}
-            </Badge>
-            <Badge variant="outline" className="text-xs font-sans">
-              {employee.employment_type}
-            </Badge>
+
           </div>
         </div>
       </CardContent>
