@@ -339,13 +339,24 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
   const [zoom, setZoom] = useState(0.55)
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const [contentSize, setContentSize] = useState({ width: 0, height: 0 })
+
+  // Track actual content size with ResizeObserver
+  useEffect(() => {
+    const el = contentRef.current
+    if (!el) return
+    const observer = new ResizeObserver(() => {
+      setContentSize({ width: el.scrollWidth, height: el.scrollHeight })
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   const zoomIn = useCallback(() => setZoom((z) => Math.min(MAX_ZOOM, z + ZOOM_STEP)), [])
   const zoomOut = useCallback(() => setZoom((z) => Math.max(MIN_ZOOM, z - ZOOM_STEP)), [])
   const fitToScreen = useCallback(() => {
     if (!containerRef.current || !contentRef.current) return
     const container = containerRef.current.getBoundingClientRect()
-    // Content scrollWidth/scrollHeight are the unscaled size (since transform doesn't affect layout)
     const actualWidth = contentRef.current.scrollWidth
     const actualHeight = contentRef.current.scrollHeight
     const scaleX = (container.width - 16) / actualWidth
@@ -484,9 +495,8 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
       <div ref={containerRef} className="relative overflow-auto flex-1" style={{ minHeight: "70vh" }}>
         <div
           style={{
-            width: contentRef.current ? contentRef.current.scrollWidth * zoom : "auto",
-            height: contentRef.current ? contentRef.current.scrollHeight * zoom : "auto",
-            overflow: "hidden",
+            width: contentSize.width ? contentSize.width * zoom : "auto",
+            height: contentSize.height ? contentSize.height * zoom : "auto",
           }}
         >
           <div
