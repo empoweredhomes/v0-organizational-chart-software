@@ -59,6 +59,7 @@
     "vaul": "^1.1.2",
     "zod": "^3.24.1",
     "@neondatabase/serverless": "^0.10.4",
+    "next-auth": "^5.0.0-beta.25",
     "bcryptjs": "^2.4.3",
     "swr": "^2.2.5",
     "@vercel/blob": "^0.27.1"
