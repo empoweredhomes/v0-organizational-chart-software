@@ -63,17 +63,7 @@ export function LoginForm() {
                   className="font-sans"
                 />
               </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="password" className="font-sans">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  required
-                  className="font-sans"
-                />
-              </div>
+
               <Button type="submit" className="w-full font-sans" disabled={isPending}>
                 {isPending ? "Signing in..." : "Sign in"}
               </Button>

@@ -3,39 +3,33 @@
 import { sql } from "@/lib/db"
 import { createSession, destroySession } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import bcrypt from "bcryptjs"
 
 export async function loginAction(
   _prevState: { error?: string; success?: boolean } | null,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
   const email = formData.get("email") as string
-  const password = formData.get("password") as string
 
-  if (!email || !password) {
-    return { error: "Email and password are required." }
+  if (!email) {
+    return { error: "Email is required." }
+  }
+
+  const normalizedEmail = email.toLowerCase().trim()
+
+  // Only allow @getmysa.com emails
+  if (!normalizedEmail.endsWith("@getmysa.com")) {
+    return { error: "Please use your @getmysa.com email address." }
   }
 
   const rows = await sql`
-    SELECT id, password_hash FROM employees WHERE email = ${email.toLowerCase().trim()}
+    SELECT id FROM employees WHERE email = ${normalizedEmail}
   `
 
   if (rows.length === 0) {
-    return { error: "Invalid email or password." }
+    return { error: "No account found for this email. Please contact the P&C team." }
   }
 
-  const employee = rows[0]
-
-  if (!employee.password_hash) {
-    return { error: "Account not set up. Please contact the P&C team." }
-  }
-
-  const valid = await bcrypt.compare(password, employee.password_hash)
-  if (!valid) {
-    return { error: "Invalid email or password." }
-  }
-
-  await createSession(employee.id)
+  await createSession(rows[0].id)
   return { success: true }
 }
 
