@@ -1,5 +1,5 @@
 "use server"
-
+// Session-based auth - no NextAuth dependency
 import { cookies } from "next/headers"
 import { sql } from "@/lib/db"
 import { redirect } from "next/navigation"
