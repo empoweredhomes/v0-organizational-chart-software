@@ -31,7 +31,7 @@ import {
   LogOut,
   ChevronUp,
 } from "lucide-react"
-import { logoutAction } from "@/app/actions/auth"
+import { signOutAction } from "@/app/actions/signout"
 import type { SessionUser } from "@/lib/types"
 
 const navItems = [
@@ -142,7 +142,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <form action={logoutAction} className="w-full">
+                  <form action={signOutAction} className="w-full">
                     <button type="submit" className="flex w-full items-center gap-2 font-sans">
                       <LogOut className="h-4 w-4" />
                       Sign out

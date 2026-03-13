@@ -1,36 +1,14 @@
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Separator } from "@/components/ui/separator"
-import { sql } from "@/lib/db"
-import type { SessionUser } from "@/lib/types"
-
-async function getDefaultUser(): Promise<SessionUser> {
-  const rows = await sql`
-    SELECT e.id, e.first_name, e.last_name, e.email, e.job_title, e.photo_url, e.is_admin
-    FROM employees e
-    WHERE e.email = 'ameerah@getmysa.com'
-    LIMIT 1
-  `
-  if (rows.length > 0) {
-    return rows[0] as SessionUser
-  }
-  return {
-    id: "",
-    first_name: "Admin",
-    last_name: "User",
-    email: "admin@getmysa.com",
-    job_title: "Admin",
-    photo_url: null,
-    is_admin: true,
-  }
-}
+import { requireSession } from "@/lib/auth"
 
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const user = await getDefaultUser()
+  const user = await requireSession()
 
   return (
     <SidebarProvider>
