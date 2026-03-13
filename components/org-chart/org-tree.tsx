@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { OrgNodeCard } from "./org-node"
-import { Search, X, ZoomIn, ZoomOut, Maximize } from "lucide-react"
+import { Search, X, ZoomIn, ZoomOut, Maximize, Users } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import type { OrgNode } from "@/lib/types"
 
 const ZOOM_STEP = 0.1
@@ -313,14 +314,15 @@ interface OrgTreeProps {
   headcounts: DepartmentHeadcount[]
 }
 
-// Flatten the tree into a list of { id, name, path } for searching
-function flattenTree(nodes: OrgNode[], path: string[] = []): { id: string; name: string; title: string; ancestorIds: string[] }[] {
-  const result: { id: string; name: string; title: string; ancestorIds: string[] }[] = []
+// Flatten the tree into a list of { id, name, path, department } for searching
+function flattenTree(nodes: OrgNode[], path: string[] = []): { id: string; name: string; title: string; department: string | null; ancestorIds: string[] }[] {
+  const result: { id: string; name: string; title: string; department: string | null; ancestorIds: string[] }[] = []
   for (const node of nodes) {
     result.push({
       id: node.id,
       name: `${node.first_name} ${node.last_name}`,
       title: node.job_title,
+      department: node.department_name,
       ancestorIds: [...path],
     })
     result.push(...flattenTree(node.children, [...path, node.id]))
@@ -436,8 +438,40 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
     }, 150)
   }, [])
 
+  const selectDepartment = useCallback((departmentName: string) => {
+    // Find the first employee in this department
+    const entry = flatList.find((e) => e.department === departmentName)
+    if (entry) {
+      selectEmployee(entry)
+    }
+  }, [flatList, selectEmployee])
+
+  const totalEmployees = headcountsList.reduce((sum, d) => sum + d.count, 0)
+
   return (
     <div className="flex flex-col gap-4">
+      {/* Department badges */}
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="outline" className="font-sans text-xs gap-1.5 py-1 px-2.5">
+          <Users className="h-3 w-3" />
+          {totalEmployees} people
+        </Badge>
+        {headcountsList.map((dept) => (
+          <Badge
+            key={dept.department_name}
+            variant="secondary"
+            className="font-sans text-xs py-1 px-2.5 cursor-pointer hover:opacity-80 transition-opacity"
+            style={{
+              backgroundColor: dept.color + "18",
+              color: dept.color,
+            }}
+            onClick={() => selectDepartment(dept.department_name)}
+          >
+            {dept.department_name} ({dept.count})
+          </Badge>
+        ))}
+      </div>
+
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
           <button
