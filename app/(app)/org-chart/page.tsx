@@ -18,9 +18,9 @@ export default async function OrgChartPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-6 h-full overflow-hidden">
       {/* Page header */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 shrink-0">
         <div className="flex items-center gap-2">
           <GitBranch className="h-5 w-5 text-primary" />
           <h1 className="text-xl font-semibold text-foreground font-sans">
@@ -33,8 +33,8 @@ export default async function OrgChartPage() {
       </div>
 
       {/* Org tree */}
-      <Card className="border border-border">
-        <CardContent className="p-4">
+      <Card className="border border-border flex-1 min-h-0 overflow-hidden">
+        <CardContent className="p-4 h-full overflow-hidden">
           <OrgTree tree={tree} headcounts={headcounts} />
         </CardContent>
       </Card>

@@ -449,7 +449,7 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
   const totalEmployees = headcountsList.reduce((sum, d) => sum + d.count, 0)
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 h-full overflow-hidden">
       {/* Department badges */}
       <div className="flex flex-wrap gap-2">
         <Badge variant="outline" className="font-sans text-xs gap-1.5 py-1 px-2.5">
@@ -526,7 +526,7 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
         </div>
       </div>
 
-      <div ref={containerRef} className="relative overflow-auto flex-1" style={{ minHeight: "70vh" }}>
+      <div ref={containerRef} className="relative overflow-auto flex-1 min-h-0">
         <div
           style={{
             width: contentSize.width ? contentSize.width * zoom : "auto",

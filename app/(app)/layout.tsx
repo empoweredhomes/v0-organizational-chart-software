@@ -23,7 +23,7 @@ export default async function AppLayout({
             </span>
           </div>
         </header>
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-hidden">
           {children}
         </main>
       </SidebarInset>
