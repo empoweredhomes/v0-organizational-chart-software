@@ -2,7 +2,7 @@ import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { sql } from "@/lib/db"
-import { isPreviewEnvironment } from "@/lib/env"
+import { isPreviewEnvironment, isServerPreview } from "@/lib/env"
 import type { SessionUser } from "@/lib/types"
 
 // Default admin user for preview environments
@@ -28,11 +28,11 @@ async function getDefaultPreviewUser(): Promise<SessionUser> {
 }
 
 export async function getSession(): Promise<SessionUser | null> {
-  // Check for preview environment
+  // Check for preview environment (hostname or VERCEL_ENV)
   const headersList = await headers()
   const host = headersList.get("host") || ""
   
-  if (isPreviewEnvironment(host)) {
+  if (isPreviewEnvironment(host) || isServerPreview()) {
     return getDefaultPreviewUser()
   }
 

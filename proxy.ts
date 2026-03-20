@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { auth } from "@/auth"
-import { isPreviewEnvironment } from "@/lib/env"
+import { isPreviewEnvironment, isServerPreview } from "@/lib/env"
 
 // Public routes that don't require authentication
 const publicRoutes = ["/login", "/api/auth"]
@@ -10,8 +10,8 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const hostname = req.nextUrl.hostname
 
-  // Bypass auth in preview environments (v0 preview, localhost)
-  if (isPreviewEnvironment(hostname)) {
+  // Bypass auth in preview environments (v0 preview, localhost, VERCEL_ENV=preview)
+  if (isPreviewEnvironment(hostname) || isServerPreview()) {
     return NextResponse.next()
   }
 

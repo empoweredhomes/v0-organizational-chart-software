@@ -4,17 +4,17 @@ import { auth, signIn } from "@/auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2 } from "lucide-react"
-import { isPreviewEnvironment } from "@/lib/env"
+import { isPreviewEnvironment, isServerPreview } from "@/lib/env"
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>
 }) {
-  // Bypass login in preview environments
+  // Bypass login in preview environments (check both hostname and env vars)
   const headersList = await headers()
   const host = headersList.get("host") || ""
-  if (isPreviewEnvironment(host)) {
+  if (isPreviewEnvironment(host) || isServerPreview()) {
     redirect("/org-chart")
   }
 
