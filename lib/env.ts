@@ -1,13 +1,20 @@
+// Production domain - only this domain requires authentication
+const PRODUCTION_DOMAIN = "v0-organizational-chart-software.vercel.app"
+
 /**
  * Check if running in a preview environment (v0 preview or localhost)
  * Used to bypass authentication for development/testing
+ * 
+ * Logic: If NOT on production domain, it's a preview environment
  */
 export function isPreviewEnvironment(hostname: string): boolean {
-  return (
-    hostname.includes("vusercontent.net") ||
-    hostname.includes("localhost") ||
-    hostname.includes("127.0.0.1")
-  )
+  // If it's the production domain, NOT a preview
+  if (hostname === PRODUCTION_DOMAIN) {
+    return false
+  }
+  
+  // Everything else is considered preview (v0 sandbox, localhost, etc.)
+  return true
 }
 
 /**
@@ -17,6 +24,11 @@ export function isServerPreview(): boolean {
   // Check common preview environment indicators
   const vercelEnv = process.env.VERCEL_ENV
   const nodeEnv = process.env.NODE_ENV
+  
+  // Production deployment
+  if (vercelEnv === "production") {
+    return false
+  }
   
   // v0 preview environments or local development
   if (vercelEnv === "preview" || vercelEnv === "development") {
@@ -28,5 +40,6 @@ export function isServerPreview(): boolean {
     return true
   }
   
-  return false
+  // Default to preview (safer for development)
+  return true
 }
