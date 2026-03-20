@@ -1,14 +1,23 @@
 import { redirect } from "next/navigation"
+import { headers } from "next/headers"
 import { auth, signIn } from "@/auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2 } from "lucide-react"
+import { isPreviewEnvironment } from "@/lib/env"
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>
 }) {
+  // Bypass login in preview environments
+  const headersList = await headers()
+  const host = headersList.get("host") || ""
+  if (isPreviewEnvironment(host)) {
+    redirect("/org-chart")
+  }
+
   const session = await auth()
   const params = await searchParams
 
