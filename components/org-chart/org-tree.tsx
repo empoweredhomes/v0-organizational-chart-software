@@ -338,7 +338,7 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
 
   const [search, setSearch] = useState("")
   const [highlightId, setHighlightId] = useState<string | null>(null)
-  const [zoom, setZoom] = useState(0.55)
+  const [zoom, setZoom] = useState(0.85)
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [contentSize, setContentSize] = useState({ width: 0, height: 0 })
@@ -527,18 +527,11 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
       </div>
 
       <div ref={containerRef} className="relative overflow-auto flex-1 min-h-0">
-        <div
-          style={{
-            width: contentSize.width ? contentSize.width * zoom : "auto",
-            height: contentSize.height ? contentSize.height * zoom : "auto",
-          }}
-        >
           <div
             ref={contentRef}
-            className="inline-flex flex-col items-center min-w-max p-8"
+            className="inline-flex flex-col items-center py-4 px-4 origin-top-left"
             style={{
               transform: `scale(${zoom})`,
-              transformOrigin: "top left",
             }}
           >
             {tree.map((root) => (
@@ -554,7 +547,6 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
               />
             ))}
           </div>
-        </div>
 
         {/* Zoom controls - bottom right */}
         <div className="sticky bottom-4 flex justify-end mr-4">
