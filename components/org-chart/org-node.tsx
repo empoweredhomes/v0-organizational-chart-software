@@ -25,7 +25,7 @@ export function OrgNodeCard({ node, isCollapsed, onToggle, isRoot, isHighlighted
           relative flex flex-col items-center rounded-lg border bg-card p-3 shadow-sm
           transition-all hover:shadow-md w-48
           ${isRoot ? "border-primary/30 shadow-md" : "border-border"}
-          ${isHighlighted ? "ring-2 ring-primary ring-offset-2 shadow-lg" : ""}
+          ${isHighlighted ? "ring-2 ring-yellow-400 ring-offset-2 shadow-[0_0_15px_rgba(250,204,21,0.7)]" : ""}
         `}
         style={
           node.department_color
