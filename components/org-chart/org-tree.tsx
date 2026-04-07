@@ -535,7 +535,7 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
         >
           <div
             ref={contentRef}
-            className="inline-flex flex-col items-center min-w-max p-8"
+            className="inline-flex flex-col items-center pt-4 pb-8 px-4"
             style={{
               transform: `scale(${zoom})`,
               transformOrigin: "top left",
