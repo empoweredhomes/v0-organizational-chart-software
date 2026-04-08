@@ -443,44 +443,34 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAd
       
       const element = contentRef.current
       
-      // Capture with html2canvas - ignore images to avoid CORS issues
-      const canvas = await html2canvas(element, {
-        scale: 1.5,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-        logging: false,
-        imageTimeout: 0,
-        foreignObjectRendering: false,
-        ignoreElements: (el) => {
-          // Ignore images that might cause CORS issues
-          if (el.tagName === "IMG" && el.getAttribute("src")?.includes("blob.vercel-storage.com")) {
-            return true
-          }
-          return false
+      // Create a new jsPDF document in landscape
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a3",
+      })
+      
+      // Use html method which handles the conversion
+      await pdf.html(element, {
+        callback: (doc) => {
+          doc.save("mysa-org-chart.pdf")
+        },
+        x: 10,
+        y: 10,
+        width: 400,
+        windowWidth: element.scrollWidth,
+        html2canvas: {
+          scale: 0.5,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
         },
       })
       
-      const imgData = canvas.toDataURL("image/jpeg", 0.9)
-      const imgWidth = canvas.width
-      const imgHeight = canvas.height
-      
-      // Calculate PDF dimensions (landscape for wide org charts)
-      const pdfWidth = imgWidth / 1.5
-      const pdfHeight = imgHeight / 1.5
-      
-      const pdf = new jsPDF({
-        orientation: pdfWidth > pdfHeight ? "landscape" : "portrait",
-        unit: "px",
-        format: [pdfWidth, pdfHeight],
-      })
-      
-      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight)
-      pdf.save("mysa-org-chart.pdf")
-      
     } catch (error) {
       console.error("PDF download error:", error)
-      alert("Failed to download PDF. Please try again.")
+      // Fallback to print dialog
+      window.print()
     } finally {
       // Restore previous state
       setCollapsedNodes(previousCollapsedNodes)
