@@ -41,10 +41,10 @@ const navItems = [
 ]
 
 const adminItems = [
-  { href: "/admin/employees", label: "Manage Employees", icon: UserPlus },
+  { href: "/admin/audit-log", label: "Audit Log", icon: FileText },
   { href: "/admin/departments", label: "Departments", icon: Building2 },
   { href: "/admin/roster", label: "Employee Roster", icon: TableProperties },
-  { href: "/admin/audit-log", label: "Audit Log", icon: FileText },
+  { href: "/admin/employees", label: "Manage Employees", icon: UserPlus },
 ]
 
 interface AppSidebarProps {
