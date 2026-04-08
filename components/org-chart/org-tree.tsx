@@ -376,38 +376,49 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAd
     setIsDownloading(true)
     
     try {
-      // Temporarily reset zoom to 1 for better quality capture
-      const originalZoom = zoom
-      setZoom(1)
-      
-      // Wait for re-render
-      await new Promise(resolve => setTimeout(resolve, 200))
-      
       const element = contentRef.current
-      const canvas = await html2canvas(element, {
-        scale: 2,
+      
+      // Clone the element to avoid modifying the original
+      const clone = element.cloneNode(true) as HTMLElement
+      clone.style.transform = "none"
+      clone.style.position = "absolute"
+      clone.style.left = "-9999px"
+      clone.style.top = "0"
+      document.body.appendChild(clone)
+      
+      const canvas = await html2canvas(clone, {
+        scale: 1.5,
         useCORS: true,
         allowTaint: true,
         backgroundColor: "#ffffff",
         logging: false,
+        imageTimeout: 15000,
+        onclone: (clonedDoc) => {
+          // Replace external images with placeholders to avoid CORS issues
+          const images = clonedDoc.querySelectorAll("img")
+          images.forEach((img) => {
+            if (img.src.includes("blob.vercel-storage.com")) {
+              img.crossOrigin = "anonymous"
+            }
+          })
+        },
       })
       
-      // Restore zoom
-      setZoom(originalZoom)
+      // Remove clone
+      document.body.removeChild(clone)
       
-      const imgData = canvas.toDataURL("image/png")
+      const imgData = canvas.toDataURL("image/jpeg", 0.95)
       const imgWidth = canvas.width
       const imgHeight = canvas.height
       
-      // Create PDF in landscape if wider than tall
-      const orientation = imgWidth > imgHeight ? "landscape" : "portrait"
+      // Create PDF in landscape (org charts are typically wide)
       const pdf = new jsPDF({
-        orientation,
+        orientation: "landscape",
         unit: "px",
-        format: [imgWidth / 2, imgHeight / 2],
+        format: [imgWidth / 1.5, imgHeight / 1.5],
       })
       
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth / 2, imgHeight / 2)
+      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth / 1.5, imgHeight / 1.5)
       pdf.save("mysa-org-chart.pdf")
     } catch (error) {
       console.error("PDF download error:", error)
@@ -415,7 +426,7 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAd
     } finally {
       setIsDownloading(false)
     }
-  }, [zoom, isDownloading])
+  }, [isDownloading])
 
   const flatList = useMemo(() => flattenTree(tree), [tree])
 
