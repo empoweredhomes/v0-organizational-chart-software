@@ -371,63 +371,6 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAd
     setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.min(scaleX, scaleY))))
   }, [])
 
-  const downloadPdf = useCallback(async () => {
-    if (!contentRef.current || isDownloading) return
-    setIsDownloading(true)
-    
-    // Save current state
-    const previousCollapsedNodes = new Set(collapsedNodes)
-    const previousZoom = zoom
-    
-    try {
-      // Expand all nodes and reset zoom for full capture
-      setCollapsedNodes(new Set())
-      setZoom(1)
-      
-      // Wait for DOM to update
-      await new Promise(resolve => setTimeout(resolve, 300))
-      
-      const element = contentRef.current
-      
-      // Capture with html2canvas
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-        logging: false,
-        imageTimeout: 0,
-        foreignObjectRendering: false,
-      })
-      
-      const imgData = canvas.toDataURL("image/png")
-      const imgWidth = canvas.width
-      const imgHeight = canvas.height
-      
-      // Calculate PDF dimensions (landscape for wide org charts)
-      const pdfWidth = imgWidth / 2
-      const pdfHeight = imgHeight / 2
-      
-      const pdf = new jsPDF({
-        orientation: pdfWidth > pdfHeight ? "landscape" : "portrait",
-        unit: "px",
-        format: [pdfWidth, pdfHeight],
-      })
-      
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight)
-      pdf.save("mysa-org-chart.pdf")
-      
-    } catch (error) {
-      console.error("PDF download error:", error)
-      alert("Failed to download PDF. Please try again.")
-    } finally {
-      // Restore previous state
-      setCollapsedNodes(previousCollapsedNodes)
-      setZoom(previousZoom)
-      setIsDownloading(false)
-    }
-  }, [isDownloading, collapsedNodes, zoom])
-
   const flatList = useMemo(() => flattenTree(tree), [tree])
 
   const searchResults = useMemo(() => {
@@ -481,6 +424,70 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAd
     walkTree(tree)
     setCollapsedNodes(collapsed)
   }, [tree])
+
+  const downloadPdf = useCallback(async () => {
+    if (!contentRef.current || isDownloading) return
+    setIsDownloading(true)
+    
+    // Save current state
+    const previousCollapsedNodes = new Set(collapsedNodes)
+    const previousZoom = zoom
+    
+    try {
+      // Expand all nodes and reset zoom for full capture
+      setCollapsedNodes(new Set())
+      setZoom(1)
+      
+      // Wait for DOM to update
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      const element = contentRef.current
+      
+      // Capture with html2canvas - ignore images to avoid CORS issues
+      const canvas = await html2canvas(element, {
+        scale: 1.5,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        imageTimeout: 0,
+        foreignObjectRendering: false,
+        ignoreElements: (el) => {
+          // Ignore images that might cause CORS issues
+          if (el.tagName === "IMG" && el.getAttribute("src")?.includes("blob.vercel-storage.com")) {
+            return true
+          }
+          return false
+        },
+      })
+      
+      const imgData = canvas.toDataURL("image/jpeg", 0.9)
+      const imgWidth = canvas.width
+      const imgHeight = canvas.height
+      
+      // Calculate PDF dimensions (landscape for wide org charts)
+      const pdfWidth = imgWidth / 1.5
+      const pdfHeight = imgHeight / 1.5
+      
+      const pdf = new jsPDF({
+        orientation: pdfWidth > pdfHeight ? "landscape" : "portrait",
+        unit: "px",
+        format: [pdfWidth, pdfHeight],
+      })
+      
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight)
+      pdf.save("mysa-org-chart.pdf")
+      
+    } catch (error) {
+      console.error("PDF download error:", error)
+      alert("Failed to download PDF. Please try again.")
+    } finally {
+      // Restore previous state
+      setCollapsedNodes(previousCollapsedNodes)
+      setZoom(previousZoom)
+      setIsDownloading(false)
+    }
+  }, [isDownloading, collapsedNodes, zoom])
 
   const selectEmployee = useCallback((entry: { id: string; ancestorIds: string[] }) => {
     // Expand all ancestors so the node is visible
