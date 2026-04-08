@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { OrgNodeCard } from "./org-node"
-import { Search, X, ZoomIn, ZoomOut, Maximize, Users } from "lucide-react"
+import { Search, X, ZoomIn, ZoomOut, Maximize, Users, Download } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import type { OrgNode } from "@/lib/types"
 
@@ -313,6 +313,7 @@ interface OrgTreeProps {
   tree: OrgNode[]
   headcounts: DepartmentHeadcount[]
   totalEmployees: number
+  isAdmin?: boolean
 }
 
 // Flatten the tree into a list of { id, name, path, department } for searching
@@ -331,7 +332,7 @@ function flattenTree(nodes: OrgNode[], path: string[] = []): { id: string; name:
   return result
 }
 
-export function OrgTree({ tree, headcounts: headcountsList, totalEmployees }: OrgTreeProps) {
+export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAdmin = false }: OrgTreeProps) {
   const headcountsMap = new Map<string, DepartmentHeadcount>()
   for (const hc of headcountsList) {
     headcountsMap.set(hc.department_name, hc)
@@ -340,6 +341,7 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees }: Or
   const [search, setSearch] = useState("")
   const [highlightId, setHighlightId] = useState<string | null>(null)
   const [zoom, setZoom] = useState(0.85)
+  const [isDownloading, setIsDownloading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [contentSize, setContentSize] = useState({ width: 0, height: 0 })
@@ -366,6 +368,53 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees }: Or
     const scaleY = (container.height - 16) / actualHeight
     setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.min(scaleX, scaleY))))
   }, [])
+
+  const downloadPdf = useCallback(async () => {
+    if (!contentRef.current || isDownloading) return
+    setIsDownloading(true)
+    
+    try {
+      const html2canvas = (await import("html2canvas")).default
+      const jsPDF = (await import("jspdf")).default
+      
+      // Temporarily reset zoom to 1 for better quality capture
+      const originalZoom = zoom
+      setZoom(1)
+      
+      // Wait for re-render
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      const element = contentRef.current
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+      })
+      
+      // Restore zoom
+      setZoom(originalZoom)
+      
+      const imgData = canvas.toDataURL("image/png")
+      const imgWidth = canvas.width
+      const imgHeight = canvas.height
+      
+      // Create PDF in landscape if wider than tall
+      const orientation = imgWidth > imgHeight ? "landscape" : "portrait"
+      const pdf = new jsPDF({
+        orientation,
+        unit: "px",
+        format: [imgWidth / 2, imgHeight / 2],
+      })
+      
+      pdf.addImage(imgData, "PNG", 0, 0, imgWidth / 2, imgHeight / 2)
+      pdf.save("mysa-org-chart.pdf")
+    } catch (error) {
+      console.error("[v0] PDF download error:", error)
+    } finally {
+      setIsDownloading(false)
+    }
+  }, [zoom, isDownloading])
 
   const flatList = useMemo(() => flattenTree(tree), [tree])
 
@@ -577,6 +626,19 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees }: Or
             >
               <Maximize className="h-4 w-4 text-foreground" />
             </button>
+            {isAdmin && (
+              <>
+                <div className="w-px h-5 bg-border mx-0.5" />
+                <button
+                  onClick={downloadPdf}
+                  disabled={isDownloading}
+                  className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors disabled:opacity-50"
+                  title="Download PDF"
+                >
+                  <Download className={`h-4 w-4 text-foreground ${isDownloading ? "animate-pulse" : ""}`} />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
