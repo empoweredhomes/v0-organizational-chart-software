@@ -453,31 +453,28 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAd
       // A4 landscape dimensions: 297mm x 210mm
       const pageWidth = 297
       const pageHeight = 210
-      const margin = 5
-      const contentWidth = pageWidth - (margin * 2)
-      const contentHeight = pageHeight - (margin * 2)
+      const margin = 10
       
-      // Calculate scale to fit the entire org chart on one A4 page
-      const elementWidth = element.scrollWidth
-      const elementHeight = element.scrollHeight
-      const scaleX = contentWidth / (elementWidth * 0.264583) // px to mm conversion
-      const scaleY = contentHeight / (elementHeight * 0.264583)
-      const scale = Math.min(scaleX, scaleY, 0.3) // Cap scale to avoid tiny text
+      // Use a readable scale that allows multiple pages
+      const scale = 0.5
       
-      // Use html method which handles the conversion
+      // Use html method with autoPaging enabled for multi-page output
       await pdf.html(element, {
         callback: (doc) => {
           doc.save("mysa-org-chart.pdf")
         },
         x: margin,
         y: margin,
-        width: contentWidth,
-        windowWidth: elementWidth,
+        width: pageWidth - (margin * 2),
+        windowWidth: element.scrollWidth,
+        autoPaging: "text",
+        margin: [margin, margin, margin, margin],
         html2canvas: {
           scale: scale,
           useCORS: true,
           allowTaint: true,
           logging: false,
+          backgroundColor: "#ffffff",
         },
       })
       
