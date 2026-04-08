@@ -4,6 +4,8 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { OrgNodeCard } from "./org-node"
 import { Search, X, ZoomIn, ZoomOut, Maximize, Users, Download } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import html2canvas from "html2canvas"
+import { jsPDF } from "jspdf"
 import type { OrgNode } from "@/lib/types"
 
 const ZOOM_STEP = 0.1
@@ -369,64 +371,62 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAd
     setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.min(scaleX, scaleY))))
   }, [])
 
-  const downloadPdf = useCallback(() => {
+  const downloadPdf = useCallback(async () => {
     if (!contentRef.current || isDownloading) return
     setIsDownloading(true)
     
+    // Save current state
+    const previousCollapsedNodes = new Set(collapsedNodes)
+    const previousZoom = zoom
+    
     try {
-      // Open print dialog - user can save as PDF
-      const printWindow = window.open("", "_blank")
-      if (!printWindow) {
-        alert("Please allow popups to download the PDF")
-        setIsDownloading(false)
-        return
-      }
+      // Expand all nodes and reset zoom for full capture
+      setCollapsedNodes(new Set())
+      setZoom(1)
+      
+      // Wait for DOM to update
+      await new Promise(resolve => setTimeout(resolve, 300))
       
       const element = contentRef.current
-      const clone = element.cloneNode(true) as HTMLElement
-      clone.style.transform = "none"
       
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Mysa Org Chart</title>
-            <style>
-              * { margin: 0; padding: 0; box-sizing: border-box; }
-              body { 
-                font-family: system-ui, -apple-system, sans-serif;
-                padding: 20px;
-                background: white;
-              }
-              @media print {
-                body { padding: 0; }
-                @page { size: landscape; margin: 0.5in; }
-              }
-            </style>
-            <link rel="stylesheet" href="${window.location.origin}/_next/static/css/app/layout.css" />
-          </head>
-          <body>
-            <h1 style="text-align: center; margin-bottom: 20px; font-size: 24px;">Mysa Organization Chart</h1>
-            ${clone.outerHTML}
-            <script>
-              window.onload = function() {
-                setTimeout(function() {
-                  window.print();
-                  window.close();
-                }, 500);
-              }
-            </script>
-          </body>
-        </html>
-      `)
-      printWindow.document.close()
+      // Capture with html2canvas
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        imageTimeout: 0,
+        foreignObjectRendering: false,
+      })
+      
+      const imgData = canvas.toDataURL("image/png")
+      const imgWidth = canvas.width
+      const imgHeight = canvas.height
+      
+      // Calculate PDF dimensions (landscape for wide org charts)
+      const pdfWidth = imgWidth / 2
+      const pdfHeight = imgHeight / 2
+      
+      const pdf = new jsPDF({
+        orientation: pdfWidth > pdfHeight ? "landscape" : "portrait",
+        unit: "px",
+        format: [pdfWidth, pdfHeight],
+      })
+      
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight)
+      pdf.save("mysa-org-chart.pdf")
+      
     } catch (error) {
       console.error("PDF download error:", error)
-      alert("Failed to open print dialog. Please try again.")
+      alert("Failed to download PDF. Please try again.")
     } finally {
+      // Restore previous state
+      setCollapsedNodes(previousCollapsedNodes)
+      setZoom(previousZoom)
       setIsDownloading(false)
     }
-  }, [isDownloading])
+  }, [isDownloading, collapsedNodes, zoom])
 
   const flatList = useMemo(() => flattenTree(tree), [tree])
 
