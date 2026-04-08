@@ -443,6 +443,13 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAd
       
       const element = contentRef.current
       
+      // Temporarily remove transform for accurate capture
+      const originalTransform = element.style.transform
+      element.style.transform = "none"
+      
+      // Wait for reflow
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       // Create a new jsPDF document in A4 landscape
       const pdf = new jsPDF({
         orientation: "landscape",
@@ -455,18 +462,23 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAd
       const pageHeight = 210
       const margin = 10
       
-      // Use a readable scale that allows multiple pages
-      const scale = 0.5
+      // Calculate scale to fit org chart nicely on pages
+      const elementWidth = element.scrollWidth
+      const contentWidthMM = pageWidth - (margin * 2)
+      const pxPerMM = elementWidth / contentWidthMM
+      const scale = Math.min(0.75, 96 / pxPerMM) // 96 DPI baseline
       
       // Use html method with autoPaging enabled for multi-page output
       await pdf.html(element, {
         callback: (doc) => {
+          // Restore transform before saving
+          element.style.transform = originalTransform
           doc.save("mysa-org-chart.pdf")
         },
         x: margin,
         y: margin,
-        width: pageWidth - (margin * 2),
-        windowWidth: element.scrollWidth,
+        width: contentWidthMM,
+        windowWidth: elementWidth,
         autoPaging: "text",
         margin: [margin, margin, margin, margin],
         html2canvas: {
@@ -480,6 +492,10 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAd
       
     } catch (error) {
       console.error("PDF download error:", error)
+      // Restore transform on error
+      if (contentRef.current) {
+        contentRef.current.style.transform = `scale(${previousZoom})`
+      }
       // Fallback to print dialog
       window.print()
     } finally {
