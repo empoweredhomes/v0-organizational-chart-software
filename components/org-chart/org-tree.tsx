@@ -4,8 +4,6 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { OrgNodeCard } from "./org-node"
 import { Search, X, ZoomIn, ZoomOut, Maximize, Users, Download } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import html2canvas from "html2canvas"
-import { jsPDF } from "jspdf"
 import type { OrgNode } from "@/lib/types"
 
 const ZOOM_STEP = 0.1
@@ -371,58 +369,60 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAd
     setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.min(scaleX, scaleY))))
   }, [])
 
-  const downloadPdf = useCallback(async () => {
+  const downloadPdf = useCallback(() => {
     if (!contentRef.current || isDownloading) return
     setIsDownloading(true)
     
     try {
-      const element = contentRef.current
+      // Open print dialog - user can save as PDF
+      const printWindow = window.open("", "_blank")
+      if (!printWindow) {
+        alert("Please allow popups to download the PDF")
+        setIsDownloading(false)
+        return
+      }
       
-      // Clone the element to avoid modifying the original
+      const element = contentRef.current
       const clone = element.cloneNode(true) as HTMLElement
       clone.style.transform = "none"
-      clone.style.position = "absolute"
-      clone.style.left = "-9999px"
-      clone.style.top = "0"
-      document.body.appendChild(clone)
       
-      const canvas = await html2canvas(clone, {
-        scale: 1.5,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-        logging: false,
-        imageTimeout: 15000,
-        onclone: (clonedDoc) => {
-          // Replace external images with placeholders to avoid CORS issues
-          const images = clonedDoc.querySelectorAll("img")
-          images.forEach((img) => {
-            if (img.src.includes("blob.vercel-storage.com")) {
-              img.crossOrigin = "anonymous"
-            }
-          })
-        },
-      })
-      
-      // Remove clone
-      document.body.removeChild(clone)
-      
-      const imgData = canvas.toDataURL("image/jpeg", 0.95)
-      const imgWidth = canvas.width
-      const imgHeight = canvas.height
-      
-      // Create PDF in landscape (org charts are typically wide)
-      const pdf = new jsPDF({
-        orientation: "landscape",
-        unit: "px",
-        format: [imgWidth / 1.5, imgHeight / 1.5],
-      })
-      
-      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth / 1.5, imgHeight / 1.5)
-      pdf.save("mysa-org-chart.pdf")
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Mysa Org Chart</title>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { 
+                font-family: system-ui, -apple-system, sans-serif;
+                padding: 20px;
+                background: white;
+              }
+              @media print {
+                body { padding: 0; }
+                @page { size: landscape; margin: 0.5in; }
+              }
+            </style>
+            <link rel="stylesheet" href="${window.location.origin}/_next/static/css/app/layout.css" />
+          </head>
+          <body>
+            <h1 style="text-align: center; margin-bottom: 20px; font-size: 24px;">Mysa Organization Chart</h1>
+            ${clone.outerHTML}
+            <script>
+              window.onload = function() {
+                setTimeout(function() {
+                  window.print();
+                  window.close();
+                }, 500);
+              }
+            </script>
+          </body>
+        </html>
+      `)
+      printWindow.document.close()
     } catch (error) {
       console.error("PDF download error:", error)
-      alert("Failed to download PDF. Please try again.")
+      alert("Failed to open print dialog. Please try again.")
     } finally {
       setIsDownloading(false)
     }
