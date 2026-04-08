@@ -443,24 +443,38 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAd
       
       const element = contentRef.current
       
-      // Create a new jsPDF document in landscape
+      // Create a new jsPDF document in A4 landscape
       const pdf = new jsPDF({
         orientation: "landscape",
         unit: "mm",
-        format: "a3",
+        format: "a4",
       })
+      
+      // A4 landscape dimensions: 297mm x 210mm
+      const pageWidth = 297
+      const pageHeight = 210
+      const margin = 5
+      const contentWidth = pageWidth - (margin * 2)
+      const contentHeight = pageHeight - (margin * 2)
+      
+      // Calculate scale to fit the entire org chart on one A4 page
+      const elementWidth = element.scrollWidth
+      const elementHeight = element.scrollHeight
+      const scaleX = contentWidth / (elementWidth * 0.264583) // px to mm conversion
+      const scaleY = contentHeight / (elementHeight * 0.264583)
+      const scale = Math.min(scaleX, scaleY, 0.3) // Cap scale to avoid tiny text
       
       // Use html method which handles the conversion
       await pdf.html(element, {
         callback: (doc) => {
           doc.save("mysa-org-chart.pdf")
         },
-        x: 10,
-        y: 10,
-        width: 400,
-        windowWidth: element.scrollWidth,
+        x: margin,
+        y: margin,
+        width: contentWidth,
+        windowWidth: elementWidth,
         html2canvas: {
-          scale: 0.5,
+          scale: scale,
           useCORS: true,
           allowTaint: true,
           logging: false,
