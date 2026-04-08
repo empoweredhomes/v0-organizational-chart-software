@@ -1,4 +1,4 @@
-import { getOrgTree, getDepartmentHeadcounts } from "@/lib/queries"
+import { getOrgTree, getDepartmentHeadcounts, getTotalEmployeeCount } from "@/lib/queries"
 import { OrgTree } from "@/components/org-chart/org-tree"
 import { Card, CardContent } from "@/components/ui/card"
 import { GitBranch } from "lucide-react"
@@ -6,11 +6,13 @@ import { GitBranch } from "lucide-react"
 export default async function OrgChartPage() {
   let tree: Awaited<ReturnType<typeof getOrgTree>> = []
   let headcounts: Awaited<ReturnType<typeof getDepartmentHeadcounts>> = []
+  let totalEmployees = 0
 
   try {
-    ;[tree, headcounts] = await Promise.all([
+    ;[tree, headcounts, totalEmployees] = await Promise.all([
       getOrgTree(),
       getDepartmentHeadcounts(),
+      getTotalEmployeeCount(),
     ])
   } catch (err) {
     console.error("[v0] OrgChart error:", err)
@@ -35,7 +37,7 @@ export default async function OrgChartPage() {
       {/* Org tree */}
       <Card className="border border-border flex-1 min-h-0 overflow-hidden">
         <CardContent className="p-4 h-full overflow-hidden">
-          <OrgTree tree={tree} headcounts={headcounts} />
+          <OrgTree tree={tree} headcounts={headcounts} totalEmployees={totalEmployees} />
         </CardContent>
       </Card>
     </div>
