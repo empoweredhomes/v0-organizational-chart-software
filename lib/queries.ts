@@ -165,3 +165,8 @@ export async function getDepartmentHeadcounts(): Promise<{ department_name: stri
   `
   return rows as { department_name: string; color: string; count: number }[]
 }
+
+export async function getTotalEmployeeCount(): Promise<number> {
+  const rows = await sql`SELECT COUNT(*)::int as total FROM employees`
+  return rows[0].total as number
+}

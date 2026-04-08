@@ -312,6 +312,7 @@ function OrgTreeBranch({ node, collapsedNodes, onToggle, isRoot, parentDepartmen
 interface OrgTreeProps {
   tree: OrgNode[]
   headcounts: DepartmentHeadcount[]
+  totalEmployees: number
 }
 
 // Flatten the tree into a list of { id, name, path, department } for searching
@@ -330,7 +331,7 @@ function flattenTree(nodes: OrgNode[], path: string[] = []): { id: string; name:
   return result
 }
 
-export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
+export function OrgTree({ tree, headcounts: headcountsList, totalEmployees }: OrgTreeProps) {
   const headcountsMap = new Map<string, DepartmentHeadcount>()
   for (const hc of headcountsList) {
     headcountsMap.set(hc.department_name, hc)
@@ -446,7 +447,7 @@ export function OrgTree({ tree, headcounts: headcountsList }: OrgTreeProps) {
     }
   }, [flatList, selectEmployee])
 
-  const totalEmployees = headcountsList.reduce((sum, d) => sum + d.count, 0)
+  // totalEmployees is now passed as a prop from the actual DB count
 
   return (
     <div className="flex flex-col gap-4 h-full overflow-hidden">
