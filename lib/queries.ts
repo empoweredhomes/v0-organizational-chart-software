@@ -170,3 +170,38 @@ export async function getTotalEmployeeCount(): Promise<number> {
   const rows = await sql`SELECT COUNT(*)::int as total FROM employees`
   return rows[0].total as number
 }
+
+export async function getEmployeeRoster(): Promise<{
+  id: string
+  first_name: string
+  last_name: string
+  department_name: string | null
+  manager_name: string | null
+  direct_reports: string[]
+}[]> {
+  const rows = await sql`
+    SELECT 
+      e.id,
+      e.first_name,
+      e.last_name,
+      d.name as department_name,
+      CONCAT(m.first_name, ' ', m.last_name) as manager_name,
+      COALESCE(
+        (SELECT array_agg(CONCAT(dr.first_name, ' ', dr.last_name) ORDER BY dr.last_name, dr.first_name)
+         FROM employees dr WHERE dr.manager_id = e.id),
+        ARRAY[]::text[]
+      ) as direct_reports
+    FROM employees e
+    LEFT JOIN departments d ON d.id = e.department_id
+    LEFT JOIN employees m ON m.id = e.manager_id
+    ORDER BY e.last_name, e.first_name
+  `
+  return rows as {
+    id: string
+    first_name: string
+    last_name: string
+    department_name: string | null
+    manager_name: string | null
+    direct_reports: string[]
+  }[]
+}
