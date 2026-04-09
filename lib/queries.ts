@@ -175,6 +175,7 @@ export async function getEmployeeRoster(): Promise<{
   id: string
   first_name: string
   last_name: string
+  job_title: string | null
   department_name: string | null
   manager_name: string | null
   direct_reports: string[]
@@ -184,6 +185,7 @@ export async function getEmployeeRoster(): Promise<{
       e.id,
       e.first_name,
       e.last_name,
+      e.job_title,
       d.name as department_name,
       CONCAT(m.first_name, ' ', m.last_name) as manager_name,
       COALESCE(
@@ -194,12 +196,13 @@ export async function getEmployeeRoster(): Promise<{
     FROM employees e
     LEFT JOIN departments d ON d.id = e.department_id
     LEFT JOIN employees m ON m.id = e.manager_id
-    ORDER BY e.last_name, e.first_name
+    ORDER BY e.first_name, e.last_name
   `
   return rows as {
     id: string
     first_name: string
     last_name: string
+    job_title: string | null
     department_name: string | null
     manager_name: string | null
     direct_reports: string[]

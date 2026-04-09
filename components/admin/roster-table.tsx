@@ -19,6 +19,7 @@ interface Employee {
   id: string
   first_name: string
   last_name: string
+  job_title: string | null
   department_name: string | null
   manager_name: string | null
   direct_reports: string[]
@@ -46,6 +47,7 @@ export function RosterTable({ employees }: RosterTableProps) {
     // Prepare table data
     const tableData = employees.map((emp) => [
       `${emp.first_name} ${emp.last_name}`,
+      emp.job_title || "—",
       emp.department_name || "—",
       emp.manager_name || "—",
       emp.direct_reports.length > 0 ? emp.direct_reports.join(", ") : "—",
@@ -54,11 +56,11 @@ export function RosterTable({ employees }: RosterTableProps) {
     // Generate table
     autoTable(doc, {
       startY: 32,
-      head: [["Name", "Department", "Reports To", "Direct Reports"]],
+      head: [["Name", "Job Title", "Department", "Reports To", "Direct Reports"]],
       body: tableData,
       styles: {
-        fontSize: 9,
-        cellPadding: 3,
+        fontSize: 8,
+        cellPadding: 2,
       },
       headStyles: {
         fillColor: [59, 130, 246],
@@ -69,10 +71,11 @@ export function RosterTable({ employees }: RosterTableProps) {
         fillColor: [245, 247, 250],
       },
       columnStyles: {
-        0: { cellWidth: 50 },
-        1: { cellWidth: 40 },
-        2: { cellWidth: 50 },
-        3: { cellWidth: "auto" },
+        0: { cellWidth: 40 },
+        1: { cellWidth: 45 },
+        2: { cellWidth: 35 },
+        3: { cellWidth: 40 },
+        4: { cellWidth: "auto" },
       },
     })
 
@@ -99,6 +102,7 @@ export function RosterTable({ employees }: RosterTableProps) {
             <TableHeader>
               <TableRow>
                 <TableHead className="font-sans font-semibold">Name</TableHead>
+                <TableHead className="font-sans font-semibold">Job Title</TableHead>
                 <TableHead className="font-sans font-semibold">Department</TableHead>
                 <TableHead className="font-sans font-semibold">Reports To</TableHead>
                 <TableHead className="font-sans font-semibold">Direct Reports</TableHead>
@@ -109,6 +113,9 @@ export function RosterTable({ employees }: RosterTableProps) {
                 <TableRow key={employee.id}>
                   <TableCell className="font-sans font-medium">
                     {employee.first_name} {employee.last_name}
+                  </TableCell>
+                  <TableCell className="font-sans text-muted-foreground">
+                    {employee.job_title || "—"}
                   </TableCell>
                   <TableCell className="font-sans text-muted-foreground">
                     {employee.department_name || "—"}
