@@ -115,7 +115,7 @@ export async function searchEmployees(query: string, departmentId?: string): Pro
           OR e.email ILIKE ${'%' + query + '%'}
           OR e.interests ILIKE ${'%' + query + '%'}
         )
-      ORDER BY e.last_name, e.first_name
+    ORDER BY e.first_name, e.last_name
     `
     return rows as EmployeeWithDepartment[]
   }
