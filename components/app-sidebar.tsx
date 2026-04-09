@@ -30,6 +30,7 @@ import {
   FileText,
   LogOut,
   ChevronUp,
+  TableProperties,
 } from "lucide-react"
 import { signOutAction } from "@/app/actions/signout"
 import type { SessionUser } from "@/lib/types"
@@ -40,9 +41,10 @@ const navItems = [
 ]
 
 const adminItems = [
-  { href: "/admin/employees", label: "Manage Employees", icon: UserPlus },
-  { href: "/admin/departments", label: "Departments", icon: Building2 },
   { href: "/admin/audit-log", label: "Audit Log", icon: FileText },
+  { href: "/admin/departments", label: "Departments", icon: Building2 },
+  { href: "/admin/roster", label: "Employee Roster", icon: TableProperties },
+  { href: "/admin/employees", label: "Manage Employees", icon: UserPlus },
 ]
 
 interface AppSidebarProps {

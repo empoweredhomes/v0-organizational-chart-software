@@ -4,6 +4,8 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { OrgNodeCard } from "./org-node"
 import { Search, X, ZoomIn, ZoomOut, Maximize, Users, Download } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import html2canvas from "html2canvas"
+import { jsPDF } from "jspdf"
 import type { OrgNode } from "@/lib/types"
 
 const ZOOM_STEP = 0.1
@@ -369,67 +371,6 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAd
     setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.min(scaleX, scaleY))))
   }, [])
 
-  const downloadPdf = useCallback(async () => {
-    console.log("[v0] downloadPdf called")
-    if (!contentRef.current || isDownloading) {
-      console.log("[v0] Early return:", { hasContentRef: !!contentRef.current, isDownloading })
-      return
-    }
-    setIsDownloading(true)
-    
-    try {
-      console.log("[v0] Importing html2canvas...")
-      const html2canvas = (await import("html2canvas")).default
-      console.log("[v0] html2canvas imported:", typeof html2canvas)
-      
-      console.log("[v0] Importing jspdf...")
-      const jsPDF = (await import("jspdf")).default
-      console.log("[v0] jspdf imported:", typeof jsPDF)
-      
-      // Temporarily reset zoom to 1 for better quality capture
-      const originalZoom = zoom
-      setZoom(1)
-      
-      // Wait for re-render
-      await new Promise(resolve => setTimeout(resolve, 100))
-      
-      const element = contentRef.current
-      console.log("[v0] Starting canvas capture...")
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-      })
-      console.log("[v0] Canvas captured:", canvas.width, "x", canvas.height)
-      
-      // Restore zoom
-      setZoom(originalZoom)
-      
-      const imgData = canvas.toDataURL("image/png")
-      const imgWidth = canvas.width
-      const imgHeight = canvas.height
-      
-      // Create PDF in landscape if wider than tall
-      const orientation = imgWidth > imgHeight ? "landscape" : "portrait"
-      console.log("[v0] Creating PDF with orientation:", orientation)
-      const pdf = new jsPDF({
-        orientation,
-        unit: "px",
-        format: [imgWidth / 2, imgHeight / 2],
-      })
-      
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth / 2, imgHeight / 2)
-      console.log("[v0] Saving PDF...")
-      pdf.save("mysa-org-chart.pdf")
-      console.log("[v0] PDF saved successfully")
-    } catch (error) {
-      console.error("[v0] PDF download error:", error)
-    } finally {
-      setIsDownloading(false)
-    }
-  }, [zoom, isDownloading])
-
   const flatList = useMemo(() => flattenTree(tree), [tree])
 
   const searchResults = useMemo(() => {
@@ -483,6 +424,87 @@ export function OrgTree({ tree, headcounts: headcountsList, totalEmployees, isAd
     walkTree(tree)
     setCollapsedNodes(collapsed)
   }, [tree])
+
+  const downloadPdf = useCallback(async () => {
+    if (!contentRef.current || isDownloading) return
+    setIsDownloading(true)
+    
+    // Save current state
+    const previousCollapsedNodes = new Set(collapsedNodes)
+    const previousZoom = zoom
+    
+    try {
+      // Expand all nodes and reset zoom for full capture
+      setCollapsedNodes(new Set())
+      setZoom(1)
+      
+      // Wait for DOM to update
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      const element = contentRef.current
+      
+      // Temporarily remove transform for accurate capture
+      const originalTransform = element.style.transform
+      element.style.transform = "none"
+      
+      // Wait for reflow
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Create a new jsPDF document in A4 landscape
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
+      })
+      
+      // A4 landscape dimensions: 297mm x 210mm
+      const pageWidth = 297
+      const pageHeight = 210
+      const margin = 10
+      
+      // Calculate scale to fit org chart nicely on pages
+      const elementWidth = element.scrollWidth
+      const contentWidthMM = pageWidth - (margin * 2)
+      const pxPerMM = elementWidth / contentWidthMM
+      const scale = Math.min(0.75, 96 / pxPerMM) // 96 DPI baseline
+      
+      // Use html method with autoPaging enabled for multi-page output
+      await pdf.html(element, {
+        callback: (doc) => {
+          // Restore transform before saving
+          element.style.transform = originalTransform
+          doc.save("mysa-org-chart.pdf")
+        },
+        x: margin,
+        y: margin,
+        width: contentWidthMM,
+        windowWidth: elementWidth,
+        autoPaging: "text",
+        margin: [margin, margin, margin, margin],
+        html2canvas: {
+          scale: scale,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          backgroundColor: "#ffffff",
+        },
+      })
+      
+    } catch (error) {
+      console.error("PDF download error:", error)
+      // Restore transform on error
+      if (contentRef.current) {
+        contentRef.current.style.transform = `scale(${previousZoom})`
+      }
+      // Fallback to print dialog
+      window.print()
+    } finally {
+      // Restore previous state
+      setCollapsedNodes(previousCollapsedNodes)
+      setZoom(previousZoom)
+      setIsDownloading(false)
+    }
+  }, [isDownloading, collapsedNodes, zoom])
 
   const selectEmployee = useCallback((entry: { id: string; ancestorIds: string[] }) => {
     // Expand all ancestors so the node is visible
