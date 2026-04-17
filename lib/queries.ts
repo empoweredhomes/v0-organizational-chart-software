@@ -14,7 +14,7 @@ export async function getAllEmployeesWithDepartment(): Promise<EmployeeWithDepar
       d.color as department_color
     FROM employees e
     LEFT JOIN departments d ON d.id = e.department_id
-    ORDER BY e.last_name, e.first_name
+    ORDER BY e.first_name, e.last_name
   `
   return rows as EmployeeWithDepartment[]
 }
@@ -47,7 +47,7 @@ export async function getDirectReports(managerId: string): Promise<EmployeeWithD
     FROM employees e
     LEFT JOIN departments d ON d.id = e.department_id
     WHERE e.manager_id = ${managerId}
-    ORDER BY e.last_name, e.first_name
+    ORDER BY e.first_name, e.last_name
   `
   return rows as EmployeeWithDepartment[]
 }
