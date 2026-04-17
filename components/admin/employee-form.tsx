@@ -11,16 +11,35 @@ import { createEmployee, updateEmployee } from "@/app/actions/admin"
 import { PhotoUpload } from "@/components/admin/photo-upload"
 import type { EmployeeWithDepartment, Department } from "@/lib/types"
 
+// Default locations/provinces
+const DEFAULT_LOCATIONS = [
+  "Alberta",
+  "British Columbia",
+  "California USA",
+  "Mysa HQ",
+  "Newfoundland and Labrador",
+  "Nova Scotia",
+  "Ontario",
+  "Quebec",
+  "Rhode Island USA",
+]
+
 interface EmployeeFormProps {
   employee?: EmployeeWithDepartment
   departments: Department[]
   allEmployees: EmployeeWithDepartment[]
+  locations?: string[]
   onSuccess?: () => void
 }
 
-export function EmployeeForm({ employee, departments, allEmployees, onSuccess }: EmployeeFormProps) {
+export function EmployeeForm({ employee, departments, allEmployees, locations = [], onSuccess }: EmployeeFormProps) {
   const [isPending, startTransition] = useTransition()
   const [photoUrl, setPhotoUrl] = useState<string | null>(employee?.photo_url || null)
+  const [locationValue, setLocationValue] = useState(employee?.location || "")
+  const [showCustomLocation, setShowCustomLocation] = useState(false)
+  
+  // Merge default locations with any from database
+  const allLocations = [...new Set([...DEFAULT_LOCATIONS, ...locations])].sort()
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
@@ -135,16 +154,56 @@ export function EmployeeForm({ employee, departments, allEmployees, onSuccess }:
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <Label htmlFor="location" className="font-sans">Location</Label>
-          <Select name="location" defaultValue={employee?.location || "Mysa HQ"}>
-            <SelectTrigger className="font-sans">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Mysa HQ" className="font-sans">Mysa HQ</SelectItem>
-              <SelectItem value="Remote" className="font-sans">Remote</SelectItem>
-              <SelectItem value="Hybrid" className="font-sans">Hybrid</SelectItem>
-            </SelectContent>
-          </Select>
+          {showCustomLocation ? (
+            <div className="flex gap-2">
+              <Input
+                id="location"
+                name="location"
+                value={locationValue}
+                onChange={(e) => setLocationValue(e.target.value)}
+                placeholder="Enter custom location"
+                className="font-sans flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCustomLocation(false)}
+                className="font-sans"
+              >
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Select 
+                value={locationValue} 
+                onValueChange={(val) => {
+                  if (val === "__custom__") {
+                    setShowCustomLocation(true)
+                    setLocationValue("")
+                  } else {
+                    setLocationValue(val)
+                  }
+                }}
+              >
+                <SelectTrigger className="font-sans flex-1">
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allLocations.map((loc) => (
+                    <SelectItem key={loc} value={loc} className="font-sans">
+                      {loc}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="__custom__" className="font-sans text-muted-foreground">
+                    + Add custom location...
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <input type="hidden" name="location" value={locationValue} />
+            </div>
+          )}
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="employment_type" className="font-sans">Employment Type</Label>
