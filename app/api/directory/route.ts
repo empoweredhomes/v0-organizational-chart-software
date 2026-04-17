@@ -12,10 +12,11 @@ export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const query = searchParams.get("q") || ""
   const departmentId = searchParams.get("department") || undefined
+  const location = searchParams.get("location") || undefined
 
   try {
-    const employees = query || (departmentId && departmentId !== "all")
-      ? await searchEmployees(query, departmentId)
+    const employees = query || (departmentId && departmentId !== "all") || (location && location !== "all")
+      ? await searchEmployees(query, departmentId, location)
       : await getAllEmployeesWithDepartment()
 
     return NextResponse.json(employees)

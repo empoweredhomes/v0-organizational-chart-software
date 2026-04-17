@@ -13,22 +13,25 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
 interface DirectoryViewProps {
   departments: Department[]
+  locations: string[]
   initialEmployees: EmployeeWithDepartment[]
 }
 
-export function DirectoryView({ departments, initialEmployees }: DirectoryViewProps) {
+export function DirectoryView({ departments, locations, initialEmployees }: DirectoryViewProps) {
   const [search, setSearch] = useState("")
   const [departmentFilter, setDepartmentFilter] = useState("all")
+  const [locationFilter, setLocationFilter] = useState("all")
   const [view, setView] = useState<"tile" | "list">("tile")
 
   const buildUrl = useCallback(() => {
     const params = new URLSearchParams()
     if (search.trim()) params.set("q", search.trim())
     if (departmentFilter !== "all") params.set("department", departmentFilter)
+    if (locationFilter !== "all") params.set("location", locationFilter)
     return `/api/directory?${params.toString()}`
-  }, [search, departmentFilter])
+  }, [search, departmentFilter, locationFilter])
 
-  const shouldFetch = search.trim() !== "" || departmentFilter !== "all"
+  const shouldFetch = search.trim() !== "" || departmentFilter !== "all" || locationFilter !== "all"
 
   const { data, isLoading } = useSWR<EmployeeWithDepartment[]>(
     shouldFetch ? buildUrl() : null,
@@ -52,7 +55,7 @@ export function DirectoryView({ departments, initialEmployees }: DirectoryViewPr
           />
         </div>
         <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-          <SelectTrigger className="w-full sm:w-52 font-sans">
+          <SelectTrigger className="w-full sm:w-48 font-sans">
             <SelectValue placeholder="All departments" />
           </SelectTrigger>
           <SelectContent>
@@ -60,6 +63,19 @@ export function DirectoryView({ departments, initialEmployees }: DirectoryViewPr
             {departments.map((dept) => (
               <SelectItem key={dept.id} value={dept.id} className="font-sans">
                 {dept.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={locationFilter} onValueChange={setLocationFilter}>
+          <SelectTrigger className="w-full sm:w-48 font-sans">
+            <SelectValue placeholder="All locations" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all" className="font-sans">All locations</SelectItem>
+            {locations.map((loc) => (
+              <SelectItem key={loc} value={loc} className="font-sans">
+                {loc}
               </SelectItem>
             ))}
           </SelectContent>

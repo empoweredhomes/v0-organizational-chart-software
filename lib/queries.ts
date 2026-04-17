@@ -98,8 +98,33 @@ export async function getOrgTree(): Promise<OrgNode[]> {
   return roots
 }
 
-export async function searchEmployees(query: string, departmentId?: string): Promise<EmployeeWithDepartment[]> {
-  if (departmentId && departmentId !== "all") {
+export async function searchEmployees(query: string, departmentId?: string, location?: string): Promise<EmployeeWithDepartment[]> {
+  const hasDepartment = departmentId && departmentId !== "all"
+  const hasLocation = location && location !== "all"
+  
+  if (hasDepartment && hasLocation) {
+    const rows = await sql`
+      SELECT 
+        e.*,
+        d.name as department_name,
+        d.color as department_color
+      FROM employees e
+      LEFT JOIN departments d ON d.id = e.department_id
+      WHERE e.department_id = ${departmentId}
+        AND e.location = ${location}
+        AND (
+          e.first_name ILIKE ${'%' + query + '%'}
+          OR e.last_name ILIKE ${'%' + query + '%'}
+          OR e.job_title ILIKE ${'%' + query + '%'}
+          OR e.email ILIKE ${'%' + query + '%'}
+          OR e.interests ILIKE ${'%' + query + '%'}
+        )
+      ORDER BY e.first_name, e.last_name
+    `
+    return rows as EmployeeWithDepartment[]
+  }
+  
+  if (hasDepartment) {
     const rows = await sql`
       SELECT 
         e.*,
@@ -115,7 +140,28 @@ export async function searchEmployees(query: string, departmentId?: string): Pro
           OR e.email ILIKE ${'%' + query + '%'}
           OR e.interests ILIKE ${'%' + query + '%'}
         )
-    ORDER BY e.first_name, e.last_name
+      ORDER BY e.first_name, e.last_name
+    `
+    return rows as EmployeeWithDepartment[]
+  }
+  
+  if (hasLocation) {
+    const rows = await sql`
+      SELECT 
+        e.*,
+        d.name as department_name,
+        d.color as department_color
+      FROM employees e
+      LEFT JOIN departments d ON d.id = e.department_id
+      WHERE e.location = ${location}
+        AND (
+          e.first_name ILIKE ${'%' + query + '%'}
+          OR e.last_name ILIKE ${'%' + query + '%'}
+          OR e.job_title ILIKE ${'%' + query + '%'}
+          OR e.email ILIKE ${'%' + query + '%'}
+          OR e.interests ILIKE ${'%' + query + '%'}
+        )
+      ORDER BY e.first_name, e.last_name
     `
     return rows as EmployeeWithDepartment[]
   }
@@ -133,7 +179,7 @@ export async function searchEmployees(query: string, departmentId?: string): Pro
       OR e.job_title ILIKE ${'%' + query + '%'}
       OR e.email ILIKE ${'%' + query + '%'}
       OR e.interests ILIKE ${'%' + query + '%'}
-    ORDER BY e.last_name, e.first_name
+    ORDER BY e.first_name, e.last_name
   `
   return rows as EmployeeWithDepartment[]
 }
@@ -169,6 +215,16 @@ export async function getDepartmentHeadcounts(): Promise<{ department_name: stri
 export async function getTotalEmployeeCount(): Promise<number> {
   const rows = await sql`SELECT COUNT(*)::int as total FROM employees`
   return rows[0].total as number
+}
+
+export async function getUniqueLocations(): Promise<string[]> {
+  const rows = await sql`
+    SELECT DISTINCT location 
+    FROM employees 
+    WHERE location IS NOT NULL 
+    ORDER BY location
+  `
+  return rows.map((row: { location: string }) => row.location)
 }
 
 export async function getEmployeeRoster(): Promise<{
