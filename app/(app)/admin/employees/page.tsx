@@ -1,11 +1,12 @@
-import { getAllEmployeesWithDepartment, getAllDepartments } from "@/lib/queries"
+import { getAllEmployeesWithDepartment, getAllDepartments, getUniqueLocations } from "@/lib/queries"
 import { AdminEmployeeTable } from "@/components/admin/employee-table"
 import { Shield, UserPlus } from "lucide-react"
 
 export default async function AdminEmployeesPage() {
-  const [employees, departments] = await Promise.all([
+  const [employees, departments, locations] = await Promise.all([
     getAllEmployeesWithDepartment(),
     getAllDepartments(),
+    getUniqueLocations(),
   ])
 
   return (
@@ -28,6 +29,7 @@ export default async function AdminEmployeesPage() {
         employees={employees}
         departments={departments}
         allEmployees={employees}
+        locations={locations}
       />
     </div>
   )

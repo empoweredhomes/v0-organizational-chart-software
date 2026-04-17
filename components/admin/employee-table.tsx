@@ -34,9 +34,10 @@ interface AdminEmployeeTableProps {
   employees: EmployeeWithDepartment[]
   departments: Department[]
   allEmployees: EmployeeWithDepartment[]
+  locations?: string[]
 }
 
-export function AdminEmployeeTable({ employees, departments, allEmployees }: AdminEmployeeTableProps) {
+export function AdminEmployeeTable({ employees, departments, allEmployees, locations = [] }: AdminEmployeeTableProps) {
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState("first-asc")
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -113,6 +114,7 @@ export function AdminEmployeeTable({ employees, departments, allEmployees }: Adm
             <EmployeeForm
               departments={departments}
               allEmployees={allEmployees}
+              locations={locations}
               onSuccess={() => setIsAddOpen(false)}
             />
           </DialogContent>
@@ -194,6 +196,7 @@ export function AdminEmployeeTable({ employees, departments, allEmployees }: Adm
                               employee={emp}
                               departments={departments}
                               allEmployees={allEmployees}
+                              locations={locations}
                               onSuccess={() => setEditingId(null)}
                             />
                           </DialogContent>
