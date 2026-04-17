@@ -1,11 +1,12 @@
-import { getAllEmployeesWithDepartment, getAllDepartments } from "@/lib/queries"
+import { getAllEmployeesWithDepartment, getAllDepartments, getUniqueLocations } from "@/lib/queries"
 import { DirectoryView } from "@/components/directory/directory-view"
 import { Users } from "lucide-react"
 
 export default async function DirectoryPage() {
-  const [employees, departments] = await Promise.all([
+  const [employees, departments, locations] = await Promise.all([
     getAllEmployeesWithDepartment(),
     getAllDepartments(),
+    getUniqueLocations(),
   ])
 
   return (
@@ -22,7 +23,7 @@ export default async function DirectoryPage() {
         </p>
       </div>
 
-      <DirectoryView departments={departments} initialEmployees={employees} />
+      <DirectoryView departments={departments} locations={locations} initialEmployees={employees} />
     </div>
   )
 }
