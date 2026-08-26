@@ -232,6 +232,7 @@ export async function getEmployeeRoster(): Promise<{
   first_name: string
   last_name: string
   job_title: string | null
+  start_date: string | null
   department_name: string | null
   manager_name: string | null
   direct_reports: string[]
@@ -242,6 +243,7 @@ export async function getEmployeeRoster(): Promise<{
       e.first_name,
       e.last_name,
       e.job_title,
+      e.start_date,
       d.name as department_name,
       CONCAT(m.first_name, ' ', m.last_name) as manager_name,
       COALESCE(
@@ -259,6 +261,7 @@ export async function getEmployeeRoster(): Promise<{
     first_name: string
     last_name: string
     job_title: string | null
+    start_date: string | null
     department_name: string | null
     manager_name: string | null
     direct_reports: string[]
