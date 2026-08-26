@@ -20,6 +20,7 @@ interface Employee {
   first_name: string
   last_name: string
   job_title: string | null
+  start_date: string | null
   department_name: string | null
   manager_name: string | null
   direct_reports: string[]
@@ -27,6 +28,18 @@ interface Employee {
 
 interface RosterTableProps {
   employees: Employee[]
+}
+
+function formatDate(value: string | null) {
+  if (!value) return "—"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "—"
+  return date.toLocaleDateString("en-CA", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  })
 }
 
 export function RosterTable({ employees }: RosterTableProps) {
@@ -48,6 +61,7 @@ export function RosterTable({ employees }: RosterTableProps) {
     const tableData = employees.map((emp) => [
       `${emp.first_name} ${emp.last_name}`,
       emp.job_title || "—",
+      formatDate(emp.start_date),
       emp.department_name || "—",
       emp.manager_name || "—",
       emp.direct_reports.length > 0 ? emp.direct_reports.join(", ") : "—",
@@ -56,7 +70,7 @@ export function RosterTable({ employees }: RosterTableProps) {
     // Generate table
     autoTable(doc, {
       startY: 32,
-      head: [["Name", "Job Title", "Department", "Reports To", "Direct Reports"]],
+      head: [["Name", "Job Title", "Start Date", "Department", "Reports To", "Direct Reports"]],
       body: tableData,
       styles: {
         fontSize: 8,
@@ -71,11 +85,12 @@ export function RosterTable({ employees }: RosterTableProps) {
         fillColor: [245, 247, 250],
       },
       columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 45 },
-        2: { cellWidth: 35 },
-        3: { cellWidth: 40 },
-        4: { cellWidth: "auto" },
+        0: { cellWidth: 36 },
+        1: { cellWidth: 42 },
+        2: { cellWidth: 24 },
+        3: { cellWidth: 32 },
+        4: { cellWidth: 36 },
+        5: { cellWidth: "auto" },
       },
     })
 
@@ -103,6 +118,7 @@ export function RosterTable({ employees }: RosterTableProps) {
               <TableRow>
                 <TableHead className="font-sans font-semibold">Name</TableHead>
                 <TableHead className="font-sans font-semibold">Job Title</TableHead>
+                <TableHead className="font-sans font-semibold">Start Date</TableHead>
                 <TableHead className="font-sans font-semibold">Department</TableHead>
                 <TableHead className="font-sans font-semibold">Reports To</TableHead>
                 <TableHead className="font-sans font-semibold">Direct Reports</TableHead>
@@ -116,6 +132,9 @@ export function RosterTable({ employees }: RosterTableProps) {
                   </TableCell>
                   <TableCell className="font-sans text-muted-foreground">
                     {employee.job_title || "—"}
+                  </TableCell>
+                  <TableCell className="font-sans text-muted-foreground whitespace-nowrap">
+                    {formatDate(employee.start_date)}
                   </TableCell>
                   <TableCell className="font-sans text-muted-foreground">
                     {employee.department_name || "—"}
