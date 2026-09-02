@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { createDepartment, deleteDepartment } from "@/app/actions/admin"
+import { createDepartment, updateDepartment, deleteDepartment } from "@/app/actions/admin"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import {
   AlertDialog,
@@ -27,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Building2, Users, Plus, Trash2 } from "lucide-react"
+import { Users, Plus, Trash2, Pencil } from "lucide-react"
 import type { Department } from "@/lib/types"
 
 interface DepartmentsManagerProps {
@@ -49,27 +48,48 @@ const PRESET_COLORS = [
 export function DepartmentsManager({ departments, headcountMap }: DepartmentsManagerProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<Department | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Department | null>(null)
   const [name, setName] = useState("")
   const [color, setColor] = useState(PRESET_COLORS[3])
   const [error, setError] = useState<string | null>(null)
 
-  function handleCreate(e: React.FormEvent<HTMLFormElement>) {
+  function openAdd() {
+    setEditTarget(null)
+    setName("")
+    setColor(PRESET_COLORS[3])
+    setError(null)
+    setIsDialogOpen(true)
+  }
+
+  function openEdit(dept: Department) {
+    setEditTarget(dept)
+    setName(dept.name)
+    setColor(dept.color)
+    setError(null)
+    setIsDialogOpen(true)
+  }
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     const formData = new FormData()
     formData.set("name", name)
     formData.set("color", color)
+    if (editTarget) formData.set("id", editTarget.id)
     startTransition(async () => {
-      const result = await createDepartment(formData)
+      const result = editTarget
+        ? await updateDepartment(formData)
+        : await createDepartment(formData)
       if (result?.error) {
         setError(result.error)
         return
       }
       setName("")
       setColor(PRESET_COLORS[3])
-      setIsAddOpen(false)
+      setEditTarget(null)
+      setIsDialogOpen(false)
       router.refresh()
     })
   }
@@ -87,19 +107,21 @@ export function DepartmentsManager({ departments, headcountMap }: DepartmentsMan
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button className="font-sans gap-2">
-              <Plus className="h-4 w-4" />
-              Add Department
-            </Button>
-          </DialogTrigger>
+        <Button className="font-sans gap-2" onClick={openAdd}>
+          <Plus className="h-4 w-4" />
+          Add Department
+        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent>
-            <form onSubmit={handleCreate}>
+            <form onSubmit={handleSubmit}>
               <DialogHeader>
-                <DialogTitle className="font-sans">Add Department</DialogTitle>
+                <DialogTitle className="font-sans">
+                  {editTarget ? "Edit Department" : "Add Department"}
+                </DialogTitle>
                 <DialogDescription className="font-sans">
-                  Create a new department. Employees can be assigned to it afterward.
+                  {editTarget
+                    ? "Update the department name and color."
+                    : "Create a new department. Employees can be assigned to it afterward."}
                 </DialogDescription>
               </DialogHeader>
               <div className="flex flex-col gap-4 py-4">
@@ -139,13 +161,15 @@ export function DepartmentsManager({ departments, headcountMap }: DepartmentsMan
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setIsAddOpen(false)}
+                  onClick={() => setIsDialogOpen(false)}
                   className="font-sans"
                 >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isPending} className="font-sans">
-                  {isPending ? "Creating..." : "Create"}
+                  {isPending
+                    ? editTarget ? "Saving..." : "Creating..."
+                    : editTarget ? "Save Changes" : "Create"}
                 </Button>
               </DialogFooter>
             </form>
@@ -167,15 +191,26 @@ export function DepartmentsManager({ departments, headcountMap }: DepartmentsMan
                     />
                     <CardTitle className="text-base font-sans truncate">{dept.name}</CardTitle>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-                    onClick={() => setDeleteTarget(dept)}
-                    aria-label={`Delete ${dept.name}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      onClick={() => openEdit(dept)}
+                      aria-label={`Edit ${dept.name}`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      onClick={() => setDeleteTarget(dept)}
+                      aria-label={`Delete ${dept.name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>

@@ -143,6 +143,45 @@ export async function createDepartment(formData: FormData) {
   return { success: true }
 }
 
+export async function updateDepartment(formData: FormData) {
+  const admin = await requireAdmin()
+
+  const id = formData.get("id") as string
+  const name = (formData.get("name") as string)?.trim()
+  const color = (formData.get("color") as string) || "#64748b"
+
+  if (!id) return { error: "Department not found" }
+  if (!name) return { error: "Department name is required" }
+
+  const existingDept = await sql`SELECT name, color FROM departments WHERE id = ${id}`
+  if (existingDept.length === 0) return { error: "Department not found" }
+
+  // Prevent duplicate names (case-insensitive), excluding this department
+  const duplicate = await sql`
+    SELECT id FROM departments WHERE LOWER(name) = LOWER(${name}) AND id != ${id}
+  `
+  if (duplicate.length > 0) {
+    return { error: "A department with that name already exists" }
+  }
+
+  await sql`
+    UPDATE departments SET name = ${name}, color = ${color} WHERE id = ${id}
+  `
+
+  await sql`
+    INSERT INTO audit_log (action, entity_type, entity_id, changed_by, changes)
+    VALUES ('update', 'department', ${id}, ${admin.id}, ${JSON.stringify({
+      before: existingDept[0],
+      after: { name, color },
+    })}::jsonb)
+  `
+
+  revalidatePath("/admin/departments")
+  revalidatePath("/directory")
+  revalidatePath("/org-chart")
+  return { success: true }
+}
+
 export async function deleteDepartment(departmentId: string) {
   const admin = await requireAdmin()
 
