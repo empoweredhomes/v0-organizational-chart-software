@@ -231,6 +231,7 @@ export async function getEmployeeRoster(): Promise<{
   id: string
   first_name: string
   last_name: string
+  email: string | null
   job_title: string | null
   start_date: string | null
   department_name: string | null
@@ -242,6 +243,7 @@ export async function getEmployeeRoster(): Promise<{
       e.id,
       e.first_name,
       e.last_name,
+      e.email,
       e.job_title,
       e.start_date,
       d.name as department_name,
@@ -260,6 +262,7 @@ export async function getEmployeeRoster(): Promise<{
     id: string
     first_name: string
     last_name: string
+    email: string | null
     job_title: string | null
     start_date: string | null
     department_name: string | null

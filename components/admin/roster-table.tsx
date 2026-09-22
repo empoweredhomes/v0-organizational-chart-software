@@ -19,6 +19,7 @@ interface Employee {
   id: string
   first_name: string
   last_name: string
+  email: string | null
   job_title: string | null
   start_date: string | null
   department_name: string | null
@@ -60,6 +61,7 @@ export function RosterTable({ employees }: RosterTableProps) {
     // Prepare table data
     const tableData = employees.map((emp) => [
       `${emp.first_name} ${emp.last_name}`,
+      emp.email || "—",
       emp.job_title || "—",
       formatDate(emp.start_date),
       emp.department_name || "—",
@@ -70,11 +72,11 @@ export function RosterTable({ employees }: RosterTableProps) {
     // Generate table
     autoTable(doc, {
       startY: 32,
-      head: [["Name", "Job Title", "Start Date", "Department", "Reports To", "Direct Reports"]],
+      head: [["Name", "Email", "Job Title", "Start Date", "Department", "Reports To", "Direct Reports"]],
       body: tableData,
       styles: {
-        fontSize: 8,
-        cellPadding: 2,
+        fontSize: 7,
+        cellPadding: 1.5,
       },
       headStyles: {
         fillColor: [59, 130, 246],
@@ -85,12 +87,13 @@ export function RosterTable({ employees }: RosterTableProps) {
         fillColor: [245, 247, 250],
       },
       columnStyles: {
-        0: { cellWidth: 36 },
-        1: { cellWidth: 42 },
-        2: { cellWidth: 24 },
-        3: { cellWidth: 32 },
-        4: { cellWidth: 36 },
-        5: { cellWidth: "auto" },
+        0: { cellWidth: 32 },
+        1: { cellWidth: 45 },
+        2: { cellWidth: 36 },
+        3: { cellWidth: 22 },
+        4: { cellWidth: 28 },
+        5: { cellWidth: 32 },
+        6: { cellWidth: "auto" },
       },
     })
 
@@ -117,6 +120,7 @@ export function RosterTable({ employees }: RosterTableProps) {
             <TableHeader>
               <TableRow>
                 <TableHead className="font-sans font-semibold">Name</TableHead>
+                <TableHead className="font-sans font-semibold">Email</TableHead>
                 <TableHead className="font-sans font-semibold">Job Title</TableHead>
                 <TableHead className="font-sans font-semibold">Start Date</TableHead>
                 <TableHead className="font-sans font-semibold">Department</TableHead>
@@ -129,6 +133,15 @@ export function RosterTable({ employees }: RosterTableProps) {
                 <TableRow key={employee.id}>
                   <TableCell className="font-sans font-medium">
                     {employee.first_name} {employee.last_name}
+                  </TableCell>
+                  <TableCell className="font-sans text-muted-foreground">
+                    {employee.email ? (
+                      <a href={`mailto:${employee.email}`} className="hover:text-foreground hover:underline">
+                        {employee.email}
+                      </a>
+                    ) : (
+                      "—"
+                    )}
                   </TableCell>
                   <TableCell className="font-sans text-muted-foreground">
                     {employee.job_title || "—"}
